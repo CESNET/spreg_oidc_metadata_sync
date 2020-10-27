@@ -7,13 +7,19 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.1.RELEASE</version>
+        <version>2.3.2.RELEASE</version>
     </parent>
 
     <groupId>cz.muni.ics.oidc</groupId>
     <artifactId>oidc_sync</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+
+    <properties>
+        <nimbus-jose-jwt.version>8.17.1</nimbus-jose-jwt.version>
+        <spring-security-oauth2.version>2.4.1.RELEASE</spring-security-oauth2.version>
+        <eclipse-persistence-jpa.version>2.7.7</eclipse-persistence-jpa.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -51,24 +57,43 @@
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>8.17.1</version>
+            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
-            <version>2.4.1.RELEASE</version>
+            <version>${spring-security-oauth2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mariadb.jdbc</groupId>
             <artifactId>mariadb-java-client</artifactId>
-            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.jpa</artifactId>
-            <version>2.7.7</version>
+            <version>${eclipse-persistence-jpa.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <mainClass>cz.muni.ics.oidc.Application</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 
 </project>

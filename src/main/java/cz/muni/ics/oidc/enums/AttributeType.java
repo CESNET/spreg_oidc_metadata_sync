@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc;
+package cz.muni.ics.oidc.enums;
 
 /**
  * Represents type of Value in Attribute from Perun.
@@ -19,13 +19,10 @@ public enum AttributeType {
         }
 
         switch (str.toLowerCase()) {
-            case "large_string": return LARGE_STRING;
             case "integer": return INTEGER;
             case "boolean": return BOOLEAN;
             case "array":
             case "list": return ARRAY;
-            case "large_array":
-            case "large_list": return LARGE_ARRAY;
             case "map_json": return MAP_JSON;
             case "map_key_value": return MAP_KEY_VALUE;
             default: return STRING;

@@ -26,8 +26,16 @@ attributes:
   post_logout_redirect_uris: "urn:perun:facility:attribute-def:def:OIDCPostLogoutRedirectURIs"
   issue_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCIssueRefreshTokens"
 
-encryption:
-  secret: "secret_goes_here"
+encryption_secret: "secret_goes_here"
 
-proxy_identifier: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
-proxy_identifier_value: "https://login.elixir-czech.org/idp/"
+proxy_identifier:
+  attr: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
+  value: "https://login.elixir-czech.org/idp/"
+
+actions:
+  create: TRUE
+  update: TRUE
+  delete: FALSE
+  protected_client_ids:
+    - "cid1"
+    - "cid2"

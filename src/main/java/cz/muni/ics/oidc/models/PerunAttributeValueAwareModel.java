@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import cz.muni.ics.oidc.AttributeType;
+import cz.muni.ics.oidc.enums.AttributeType;
 import cz.muni.ics.oidc.exception.InconvertibleValueException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -37,8 +37,6 @@ public abstract class PerunAttributeValueAwareModel {
     public final static String BOOLEAN_TYPE = "java.lang.Boolean";
     public final static String ARRAY_TYPE = "java.util.ArrayList";
     public final static String MAP_TYPE = "java.util.LinkedHashMap";
-    public final static String LARGE_STRING_TYPE = "java.lang.LargeString";
-    public final static String LARGE_ARRAY_LIST_TYPE = "java.util.LargeArrayList";
 
     @NonNull private String type;
     @NonNull private JsonNode value;
@@ -65,12 +63,6 @@ public abstract class PerunAttributeValueAwareModel {
             case MAP_JSON:
             case MAP_KEY_VALUE: {
                 this.setType(MAP_TYPE);
-            } break;
-            case LARGE_ARRAY: {
-                this.setType(LARGE_ARRAY_LIST_TYPE);
-            } break;
-            case LARGE_STRING: {
-                this.setType(LARGE_STRING_TYPE);
             } break;
         }
         this.setValue(this.type, value);
@@ -101,7 +93,7 @@ public abstract class PerunAttributeValueAwareModel {
     }
 
     public String valueAsString() {
-        if ((STRING_TYPE.equals(type) || LARGE_STRING_TYPE.equals(type))) {
+        if ((STRING_TYPE.equals(type))) {
             if (PerunAttributeValueAwareModel.isNullValue(value)) {
                 return null;
             } else if (value instanceof TextNode) {
@@ -138,7 +130,7 @@ public abstract class PerunAttributeValueAwareModel {
 
     public List<String> valueAsList() {
         List<String> arr = new ArrayList<>();
-        if ((ARRAY_TYPE.equals(type) || LARGE_ARRAY_LIST_TYPE.equals(type))) {
+        if ((ARRAY_TYPE.equals(type))) {
             if (PerunAttributeValueAwareModel.isNullValue(value)) {
                 return null;
             } else if (value instanceof ArrayNode) {

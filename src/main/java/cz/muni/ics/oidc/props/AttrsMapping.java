@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc.models;
+package cz.muni.ics.oidc.props;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -6,9 +6,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 @ConfigurationProperties("attributes")
 @Configuration
 public class AttrsMapping {
@@ -39,6 +42,12 @@ public class AttrsMapping {
     public List<String> getNames() {
         return Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, contacts, scopes,
                 grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens);
+    }
+
+    @PostConstruct
+    public void postInit() {
+        log.info("Initialized Attribute names properties");
+        log.debug("{}", this);
     }
 
 }
