@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc;
+package cz.muni.ics.oidc.enums;
 
 /**
  * Represents type of Value in Attribute from Perun.
