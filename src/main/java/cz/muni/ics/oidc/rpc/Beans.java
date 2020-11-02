@@ -1,6 +1,6 @@
 package cz.muni.ics.oidc.rpc;
 
-import cz.muni.ics.oidc.models.ConnectorProperties;
+import cz.muni.ics.oidc.props.ConnectorProperties;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;
 import org.apache.http.client.config.RequestConfig;

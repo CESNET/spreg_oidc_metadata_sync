@@ -1,6 +1,6 @@
 package cz.muni.ics.oidc.data;
 
-import cz.muni.ics.oidc.models.ClientDetailsEntity;
+import cz.muni.ics.oidc.models.MitreidClient;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -25,13 +25,13 @@ public class ClientRepository {
     private EntityManager manager;
 
     @Transactional
-    public void saveClient(ClientDetailsEntity client) {
+    public void saveClient(MitreidClient client) {
         this.saveOrUpdate(manager, client);
     }
 
     @Transactional
-    public void deleteClient(ClientDetailsEntity client) {
-        ClientDetailsEntity found = this.getById(client.getId());
+    public void deleteClient(MitreidClient client) {
+        MitreidClient found = this.getById(client.getId());
         if (found != null) {
             manager.remove(found);
         } else {
@@ -40,36 +40,36 @@ public class ClientRepository {
     }
 
     @Transactional
-    public void updateClient(Long id, ClientDetailsEntity client) {
+    public void updateClient(Long id, MitreidClient client) {
         client.setId(id);
         this.saveOrUpdate(manager, client);
     }
 
-    public ClientDetailsEntity getById(Long id) {
-        return manager.find(ClientDetailsEntity.class, id);
+    public MitreidClient getById(Long id) {
+        return manager.find(MitreidClient.class, id);
     }
 
-    public ClientDetailsEntity getClientByClientId(String clientId) {
-        TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(
-                ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity.class);
-        query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId);
+    public MitreidClient getClientByClientId(String clientId) {
+        TypedQuery<MitreidClient> query = manager.createNamedQuery(
+                MitreidClient.QUERY_BY_CLIENT_ID, MitreidClient.class);
+        query.setParameter(MitreidClient.PARAM_CLIENT_ID, clientId);
         return this.getSingleResult(query.getResultList());
     }
 
     public Set<String> getAllClientIds() {
-        TypedQuery<String> q = manager.createNamedQuery(ClientDetailsEntity.QUERY_ALL_CLIENT_IDS, String.class);
+        TypedQuery<String> q = manager.createNamedQuery(MitreidClient.QUERY_ALL_CLIENT_IDS, String.class);
         return new HashSet<>(q.getResultList());
     }
 
     public int deleteByClientIds(Set<String> clientIds) {
-        Query q = manager.createQuery(ClientDetailsEntity.DELETE_BY_CLIENT_IDS);
-        q.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID_SET, clientIds);
+        Query q = manager.createQuery(MitreidClient.DELETE_BY_CLIENT_IDS);
+        q.setParameter(MitreidClient.PARAM_CLIENT_ID_SET, clientIds);
         return q.executeUpdate();
     }
 
     // private
 
-    private ClientDetailsEntity getSingleResult(List<ClientDetailsEntity> list) {
+    private MitreidClient getSingleResult(List<MitreidClient> list) {
         switch(list.size()) {
             case 0:
                 return null;
@@ -80,7 +80,7 @@ public class ClientRepository {
         }
     }
 
-    private void saveOrUpdate(EntityManager entityManager, ClientDetailsEntity entity) {
+    private void saveOrUpdate(EntityManager entityManager, MitreidClient entity) {
         entityManager.merge(entity);
         entityManager.flush();
     }

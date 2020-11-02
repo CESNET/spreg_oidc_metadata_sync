@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
-import cz.muni.ics.oidc.models.ConnectorProperties;
+import cz.muni.ics.oidc.props.ConnectorProperties;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

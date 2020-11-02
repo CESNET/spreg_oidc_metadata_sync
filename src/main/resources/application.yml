@@ -33,7 +33,6 @@ proxy_identifier:
   attr: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
   value: "https://login.elixir-czech.org/idp/"
 
-
 protected_client_ids:
   - "cid1"
   - "cid2"

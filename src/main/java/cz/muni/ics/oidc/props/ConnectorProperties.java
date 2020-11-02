@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc.models;
+package cz.muni.ics.oidc.props;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import javax.annotation.PostConstruct;
 
 @Component
 @ConfigurationProperties(prefix = "rpc", ignoreUnknownFields = true)
@@ -47,5 +49,26 @@ public class ConnectorProperties {
         this.serializer = serializer;
     }
 
-}
+    @PostConstruct
+    public void postInit() {
+        log.info("Initialized RPC Connector properties");
+        log.debug("{}", this);
+    }
 
+    @Override
+    public String toString() {
+        return "ConnectorProperties{" +
+                "perunUrl='" + perunUrl + '\'' +
+                ", perunUser='" + perunUser + '\'' +
+                ", perunPassword='**************'" +
+                ", serializer='" + serializer + '\'' +
+                ", enabled=" + enabled +
+                ", requestTimeout=" + requestTimeout +
+                ", connectTimeout=" + connectTimeout +
+                ", socketTimeout=" + socketTimeout +
+                ", maxConnections=" + maxConnections +
+                ", maxConnectionsPerRoute=" + maxConnectionsPerRoute +
+                '}';
+    }
+
+}
