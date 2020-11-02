@@ -3,8 +3,8 @@ package cz.muni.ics.oidc;
 import cz.muni.ics.oidc.data.ClientRepository;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
-import cz.muni.ics.oidc.models.AttrsMapping;
-import cz.muni.ics.oidc.models.ClientDetailsEntity;
+import cz.muni.ics.oidc.models.MitreidClient;
+import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
 import cz.muni.ics.oidc.rpc.PerunAdapter;
@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,7 +42,7 @@ public class Synchronizer {
     @Value("${encryption.secret}")
     private String secret;
 
-    @Value("${proxy_identifier.identifer}")
+    @Value("${proxy_identifier.identifier}")
     private String proxyIdentifier;
 
     @Value("${proxy_identifier.value}")
@@ -73,41 +72,68 @@ public class Synchronizer {
         }
     }
 
-    public void sync() throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException,
-            PerunUnknownException, PerunConnectionException
-    {
-        List<Facility> facilities = perunAdapter.getFacilitiesByAttribute(
-                proxyIdentifier, proxyIdentifierValue);
+    public void sync() {
+        log.info("Started synchronization");
+        int created = 0;
+        int updated = 0;
+        int deleted = 0;
+        int errors = 0;
+        Set<Facility> facilities;
+        try {
+            facilities = new HashSet<>(perunAdapter.getFacilitiesByAttribute(
+                    proxyIdentifier, proxyIdentifierValue));
+        } catch (PerunConnectionException | PerunUnknownException e) {
+            log.error("Caught exception when fetching facilities by attr {} with value {}",
+                    proxyIdentifier, proxyIdentifierValue, e);
+            return;
+        }
         Set<String> foundClientIds = new HashSet<>();
         for (Facility f : facilities) {
-            log.info("Processing facility {}", f);
-            Map<String, PerunAttributeValue> attrsFromPerun = perunAdapter.getAttributesValues(
-                    f.getId(), perunAttrNames.getNames());
-            log.info("Got facility attributes");
-            String clientId = attrsFromPerun.get(perunAttrNames.getClientId()).valueAsString();
-            if (clientId == null) {
-                log.info("ClientID is null, facility is probably not OIDC, skip it.");
-                continue;
-            }
-            foundClientIds.add(clientId);
-            ClientDetailsEntity mitreClient = clientRepository.getClientByClientId(clientId);
-            log.info("Obtaining MitreID client");
-            if (mitreClient == null) {
-                this.createClient(attrsFromPerun);
-            } else {
-                this.updateClient(mitreClient, attrsFromPerun);
+            try {
+                log.debug("Processing facility {}", f);
+                Map<String, PerunAttributeValue> attrsFromPerun = perunAdapter.getAttributesValues(
+                        f.getId(), perunAttrNames.getNames());
+                log.debug("Got facility attributes");
+                log.trace("{}", attrsFromPerun);
+                String clientId = attrsFromPerun.get(perunAttrNames.getClientId()).valueAsString();
+                if (clientId == null) {
+                    log.debug("ClientID is null, facility is probably not OIDC, skip it.");
+                    continue;
+                }
+                foundClientIds.add(clientId);
+                MitreidClient mitreClient = clientRepository.getClientByClientId(clientId);
+                log.debug("Got MitreID client");
+                log.trace("{}", mitreClient);
+                if (mitreClient == null) {
+                    this.createClient(attrsFromPerun);
+                    created++;
+                } else {
+                    this.updateClient(mitreClient, attrsFromPerun);
+                    updated++;
+                }
+            } catch (Exception e) {
+                log.warn("Caught exception when syncing facility {}", f, e);
+                errors++;
             }
         }
-        this.deleteClients(this.getClientIdsToDelete(foundClientIds));
+        try {
+            deleted = deleteClients(this.getClientIdsToDelete(foundClientIds));
+        } catch (Exception e) {
+            log.warn("Caught exception when deleting unused clients", e);
+            errors++;
+        }
+        log.info("Finished syncing:\n Created {}, Updated: {}, Deleted {}, errors: {}",
+                created, updated, deleted, errors);
     }
 
-    private void deleteClients(Set<String> clientIds) {
-        log.info("Deleting clients");
+    private int deleteClients(Set<String> clientIds) {
+        log.debug("Deleting clients");
         int deleted = 0;
         if (!clientIds.isEmpty()) {
             deleted += clientRepository.deleteByClientIds(clientIds);
         }
-        log.info("Deleted {} clients", deleted);
+        log.debug("Deleted {} clients", deleted);
+        return deleted;
     }
 
     private Set<String> getClientIdsToDelete(Collection<String> foundClientIds) {
@@ -120,25 +146,25 @@ public class Synchronizer {
     private void createClient(Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
-        log.info("No client found in DB, create one");
-        ClientDetailsEntity c = new ClientDetailsEntity();
+        log.debug("No client found in DB, create one");
+        MitreidClient c = new MitreidClient();
         c.setClientId(attrs.get(perunAttrNames.getClientId()).valueAsString());
         this.setClientFields(c, attrs);
         c.setCreatedAt(new Date());
         clientRepository.saveClient(c);
-        log.info("Client created");
+        log.debug("Client created");
     }
 
-    private void updateClient(ClientDetailsEntity c, Map<String, PerunAttributeValue> attrs)
+    private void updateClient(MitreidClient c, Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
-        log.info("Client found, update configuration");
+        log.debug("Client found, update configuration");
         this.setClientFields(c, attrs);
         clientRepository.updateClient(c.getId(), c);
-        log.info("Client updated");
+        log.debug("Client updated");
     }
 
-    private void setClientFields(ClientDetailsEntity c, Map<String, PerunAttributeValue> attrs)
+    private void setClientFields(MitreidClient c, Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
         c.setClientSecret(decrypt(attrs.get(perunAttrNames.getClientSecret()).valueAsString()));

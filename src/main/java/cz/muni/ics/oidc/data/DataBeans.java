@@ -1,6 +1,7 @@
 package cz.muni.ics.oidc.data;
 
 import com.zaxxer.hikari.HikariDataSource;
+import cz.muni.ics.oidc.props.JdbcProperties;
 import org.eclipse.persistence.jpa.PersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

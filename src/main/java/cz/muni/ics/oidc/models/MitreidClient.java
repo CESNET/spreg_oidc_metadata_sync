@@ -56,7 +56,7 @@ import java.util.Set;
 @Entity
 @Table(name = "client_details")
 @NamedQueries({
-        @NamedQuery(name = ClientDetailsEntity.QUERY_ALL,
+        @NamedQuery(name = MitreidClient.QUERY_ALL,
                 query = "SELECT c FROM ClientDetailsEntity c"),
         @NamedQuery(name = ClientDetailsEntity.QUERY_BY_CLIENT_ID,
                 query = "SELECT c FROM ClientDetailsEntity c " +
@@ -67,12 +67,12 @@ import java.util.Set;
             query = "DELETE FROM ClientDetailsEntity c " +
                 "WHERE c.clientId IN :" + ClientDetailsEntity.PARAM_CLIENT_ID_SET)
 })
-public class ClientDetailsEntity implements ClientDetails {
+public class MitreidClient implements ClientDetails {
 
-    public static final String QUERY_BY_CLIENT_ID = "ClientDetailsEntity.getByClientId";
-    public static final String QUERY_ALL = "ClientDetailsEntity.findAll";
-    public static final String QUERY_ALL_CLIENT_IDS = "ClientDetailsEntity.findAllClientIds";
-    public static final String DELETE_BY_CLIENT_IDS = "ClientDetailsEntity.findAllClientIds";
+    public static final String QUERY_BY_CLIENT_ID = "MitreidClient.getByClientId";
+    public static final String QUERY_ALL = "MitreidClient.findAll";
+    public static final String QUERY_ALL_CLIENT_IDS = "MitreidClient.findAllClientIds";
+    public static final String DELETE_BY_CLIENT_IDS = "MitreidClient.findAllClientIds";
 
     public static final String PARAM_CLIENT_ID = "clientId";
     public static final String PARAM_CLIENT_ID_SET = "clientIdSet";

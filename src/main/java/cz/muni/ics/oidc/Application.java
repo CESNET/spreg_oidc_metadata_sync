@@ -21,7 +21,7 @@ public class Application implements CommandLineRunner {
     public static void main(String[] args) {
         log.info("Starting application");
         new SpringApplicationBuilder(Application.class)
-                .web(WebApplicationType.SERVLET)
+                .web(WebApplicationType.NONE)
                 .run(args);
         log.info("Closing application");
     }
