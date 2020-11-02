@@ -29,5 +29,11 @@ attributes:
 encryption:
   secret: "secret_goes_here"
 
-proxy_identifier: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
-proxy_identifier_value: "https://login.elixir-czech.org/idp/"
+proxy_identifier:
+  attr: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
+  value: "https://login.elixir-czech.org/idp/"
+
+
+protected_client_ids:
+  - "cid1"
+  - "cid2"

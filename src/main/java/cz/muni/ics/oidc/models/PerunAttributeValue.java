@@ -1,7 +1,7 @@
 package cz.muni.ics.oidc.models;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import cz.muni.ics.oidc.AttributeType;
+import cz.muni.ics.oidc.enums.AttributeType;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;

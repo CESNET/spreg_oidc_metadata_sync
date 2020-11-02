@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import cz.muni.ics.oidc.AttributeType;
+import cz.muni.ics.oidc.enums.AttributeType;
 import cz.muni.ics.oidc.exception.InconvertibleValueException;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

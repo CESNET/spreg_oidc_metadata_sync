@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc;
+package cz.muni.ics.oidc.data;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

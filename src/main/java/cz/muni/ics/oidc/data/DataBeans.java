@@ -1,15 +1,13 @@
-package cz.muni.ics.oidc;
+package cz.muni.ics.oidc.data;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.eclipse.persistence.jpa.PersistenceProvider;
-import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.EclipseLinkJpaVendorAdapter;
 
 import javax.persistence.EntityManagerFactory;

@@ -1,4 +1,4 @@
-package cz.muni.ics.oidc;
+package cz.muni.ics.oidc.data;
 
 import cz.muni.ics.oidc.models.ClientDetailsEntity;
 import lombok.AllArgsConstructor;
@@ -9,8 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 @NoArgsConstructor
@@ -21,20 +24,9 @@ public class ClientRepository {
     @NonNull
     private EntityManager manager;
 
-    public ClientDetailsEntity getById(Long id) {
-        return manager.find(ClientDetailsEntity.class, id);
-    }
-
-    public ClientDetailsEntity getClientByClientId(String clientId) {
-        TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(
-                ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity.class);
-        query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId);
-        return this.getSingleResult(query.getResultList());
-    }
-
     @Transactional
-    public ClientDetailsEntity saveClient(ClientDetailsEntity client) {
-        return this.saveOrUpdate(manager, client);
+    public void saveClient(ClientDetailsEntity client) {
+        this.saveOrUpdate(manager, client);
     }
 
     @Transactional
@@ -48,9 +40,31 @@ public class ClientRepository {
     }
 
     @Transactional
-    public ClientDetailsEntity updateClient(Long id, ClientDetailsEntity client) {
+    public void updateClient(Long id, ClientDetailsEntity client) {
         client.setId(id);
-        return this.saveOrUpdate(manager, client);
+        this.saveOrUpdate(manager, client);
+    }
+
+    public ClientDetailsEntity getById(Long id) {
+        return manager.find(ClientDetailsEntity.class, id);
+    }
+
+    public ClientDetailsEntity getClientByClientId(String clientId) {
+        TypedQuery<ClientDetailsEntity> query = manager.createNamedQuery(
+                ClientDetailsEntity.QUERY_BY_CLIENT_ID, ClientDetailsEntity.class);
+        query.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID, clientId);
+        return this.getSingleResult(query.getResultList());
+    }
+
+    public Set<String> getAllClientIds() {
+        TypedQuery<String> q = manager.createNamedQuery(ClientDetailsEntity.QUERY_ALL_CLIENT_IDS, String.class);
+        return new HashSet<>(q.getResultList());
+    }
+
+    public int deleteByClientIds(Set<String> clientIds) {
+        Query q = manager.createQuery(ClientDetailsEntity.DELETE_BY_CLIENT_IDS);
+        q.setParameter(ClientDetailsEntity.PARAM_CLIENT_ID_SET, clientIds);
+        return q.executeUpdate();
     }
 
     // private
@@ -66,10 +80,9 @@ public class ClientRepository {
         }
     }
 
-    private ClientDetailsEntity saveOrUpdate(EntityManager entityManager, ClientDetailsEntity entity) {
-        ClientDetailsEntity tmp = entityManager.merge(entity);
+    private void saveOrUpdate(EntityManager entityManager, ClientDetailsEntity entity) {
+        entityManager.merge(entity);
         entityManager.flush();
-        return tmp;
     }
 
 }
