@@ -7,7 +7,9 @@ import cz.muni.ics.oidc.models.MitreidClient;
 import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
+import cz.muni.ics.oidc.props.ActionsProperties;
 import cz.muni.ics.oidc.rpc.PerunAdapter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,38 +40,32 @@ public class Synchronizer {
     private final PerunAdapter perunAdapter;
     private final ClientRepository clientRepository;
     private final AttrsMapping perunAttrNames;
-
-    @Value("${encryption.secret}")
-    private String secret;
-
-    @Value("${proxy_identifier.identifier}")
-    private String proxyIdentifier;
-
-    @Value("${proxy_identifier.value}")
-    private String proxyIdentifierValue;
-
-    @Value("${protected_client_ids}")
-    private final Set<String> skippedClientIds = new HashSet<>();
+    private final String proxyIdentifier;
+    private final String proxyIdentifierValue;
+    private final ActionsProperties actionsProperties;
 
     public static final String CIPHER_PARAMS = "AES/ECB/PKCS5PADDING";
     public final Cipher cipher;
     private final SecretKeySpec secretKeySpec;
 
     @Autowired
-    public Synchronizer(PerunAdapter perunAdapter, ClientRepository clientRepository, AttrsMapping perunAttrNames)
+    public Synchronizer(@NonNull PerunAdapter perunAdapter,
+                        @NonNull ClientRepository clientRepository,
+                        @NonNull AttrsMapping perunAttrNames,
+                        @NonNull @Value("${proxy_identifier.attr}") String proxyIdentifier,
+                        @NonNull @Value("${proxy_identifier.value}") String proxyIdentifierValue,
+                        @NonNull @Value("${encryption_secret}") String secret,
+                        @NonNull ActionsProperties actionsProperties)
             throws NoSuchAlgorithmException, NoSuchPaddingException
     {
         this.perunAdapter = perunAdapter;
         this.clientRepository = clientRepository;
         this.perunAttrNames = perunAttrNames;
+        this.proxyIdentifier = proxyIdentifier;
+        this.proxyIdentifierValue = proxyIdentifierValue;
+        this.actionsProperties = actionsProperties;
         this.secretKeySpec = this.generateSecretKeySpec(secret);
         cipher = Cipher.getInstance(CIPHER_PARAMS);
-    }
-
-    public void setSkippedClientIds(Set<String> skippedClientIds) {
-        if (skippedClientIds != null) {
-            this.skippedClientIds.addAll(skippedClientIds);
-        }
     }
 
     public void sync() {
@@ -105,29 +101,42 @@ public class Synchronizer {
                 log.debug("Got MitreID client");
                 log.trace("{}", mitreClient);
                 if (mitreClient == null) {
-                    this.createClient(attrsFromPerun);
-                    created++;
+                    if (actionsProperties.isCreate()) {
+                        this.createClient(attrsFromPerun);
+                        created++;
+                    } else {
+                        log.warn("Creating clients is disabled, skip creation");
+                    }
                 } else {
-                    this.updateClient(mitreClient, attrsFromPerun);
-                    updated++;
+                    if (actionsProperties.isUpdate()) {
+                        this.updateClient(mitreClient, attrsFromPerun);
+                        updated++;
+                    } else {
+                        log.warn("Updating clients is disabled, skip update");
+                    }
                 }
             } catch (Exception e) {
                 log.warn("Caught exception when syncing facility {}", f, e);
                 errors++;
             }
         }
-        try {
-            deleted = deleteClients(this.getClientIdsToDelete(foundClientIds));
-        } catch (Exception e) {
-            log.warn("Caught exception when deleting unused clients", e);
-            errors++;
+        if (actionsProperties.isDelete()) {
+            try {
+                deleted = deleteClients(this.getClientIdsToDelete(foundClientIds));
+            } catch (Exception e) {
+                log.warn("Caught exception when deleting unused clients", e);
+                errors++;
+            }
+        } else {
+            log.warn("Deleting of clients is disabled.\nFollowing clientIDs would be deleted: {}",
+                    this.getClientIdsToDelete(foundClientIds));
         }
         log.info("Finished syncing:\n Created {}, Updated: {}, Deleted {}, errors: {}",
                 created, updated, deleted, errors);
     }
 
     private int deleteClients(Set<String> clientIds) {
-        log.debug("Deleting clients");
+        log.debug("Deleting clients with ids {}", clientIds);
         int deleted = 0;
         if (!clientIds.isEmpty()) {
             deleted += clientRepository.deleteByClientIds(clientIds);
@@ -139,7 +148,7 @@ public class Synchronizer {
     private Set<String> getClientIdsToDelete(Collection<String> foundClientIds) {
         Set<String> ids = clientRepository.getAllClientIds();
         ids.removeAll(foundClientIds);
-        ids.removeAll(skippedClientIds);
+        ids.removeAll(actionsProperties.getProtectedClientIds());
         return ids;
     }
 
@@ -173,7 +182,8 @@ public class Synchronizer {
         c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
         c.setContacts(Collections.singleton(attrs.get(perunAttrNames.getContacts()).valueAsString()));
         Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
-        if (attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
+        if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
+                && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
             scopes.add("offline_access");
         }
         c.setScope(scopes);

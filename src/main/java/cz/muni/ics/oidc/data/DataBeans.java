@@ -2,6 +2,7 @@ package cz.muni.ics.oidc.data;
 
 import com.zaxxer.hikari.HikariDataSource;
 import cz.muni.ics.oidc.props.JdbcProperties;
+import lombok.NonNull;
 import org.eclipse.persistence.jpa.PersistenceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ public class DataBeans {
 
     @Bean
     @Autowired
-    public DataSource dataSource(JdbcProperties jdbcProperties) {
+    public DataSource dataSource(@NonNull JdbcProperties jdbcProperties) {
         HikariDataSource ds = new HikariDataSource();
         ds.setDriverClassName(jdbcProperties.getDriverClassName());
         ds.setJdbcUrl(jdbcProperties.getUrl());
