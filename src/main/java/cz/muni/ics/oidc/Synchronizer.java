@@ -3,12 +3,12 @@ package cz.muni.ics.oidc;
 import cz.muni.ics.oidc.data.ClientRepository;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
-import cz.muni.ics.oidc.models.MitreidClient;
-import cz.muni.ics.oidc.models.ResultCounter;
-import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.models.Facility;
+import cz.muni.ics.oidc.models.MitreidClient;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
+import cz.muni.ics.oidc.models.ResultCounter;
 import cz.muni.ics.oidc.props.ActionsProperties;
+import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.rpc.PerunAdapter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -205,7 +204,11 @@ public class Synchronizer {
         c.setClientName(attrs.get(perunAttrNames.getName()).valueAsMap().get("en"));
         c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
         c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
-        c.setContacts(Collections.singleton(attrs.get(perunAttrNames.getContacts()).valueAsString()));
+        Set<String> contacts = new HashSet<>();
+        contacts.add(attrs.get(perunAttrNames.getContacts()).valueAsString());
+        contacts.add(attrs.get(perunAttrNames.getContacts2()).valueAsString());
+        contacts.remove(null);
+        c.setContacts(contacts);
         Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                 && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {

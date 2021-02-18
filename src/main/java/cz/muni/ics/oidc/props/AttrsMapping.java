@@ -32,6 +32,7 @@ public class AttrsMapping {
     private String redirectUris;
     private String privacyPolicy;
     private String contacts;
+    private String contacts2;
     private String scopes;
     private String grantTypes;
     private String responseTypes;
@@ -40,7 +41,7 @@ public class AttrsMapping {
     private String issueRefreshTokens;
 
     public List<String> getNames() {
-        return Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, contacts, scopes,
+        return Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, contacts, contacts2, scopes,
                 grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens);
     }
 
