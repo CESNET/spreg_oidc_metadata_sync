@@ -132,7 +132,7 @@ public abstract class PerunAttributeValueAwareModel {
         List<String> arr = new ArrayList<>();
         if ((ARRAY_TYPE.equals(type))) {
             if (PerunAttributeValueAwareModel.isNullValue(value)) {
-                return null;
+                return arr;
             } else if (value instanceof ArrayNode) {
                 ArrayNode arrJson = (ArrayNode) value;
                 arrJson.forEach(item -> arr.add(item.asText()));
