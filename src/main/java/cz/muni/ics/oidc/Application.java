@@ -7,11 +7,15 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
+import java.util.Arrays;
+
 @SpringBootApplication
 @Slf4j
 public class Application implements CommandLineRunner {
 
     private final Synchronizer synchronizer;
+
+    public static final String INTERACTIVE = "interactive";
 
     @Autowired
     public Application(Synchronizer synchronizer) {
@@ -29,6 +33,9 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (args.length > 0 && INTERACTIVE.equalsIgnoreCase(args[0])) {
+            synchronizer.setInteractive(true);
+        }
         synchronizer.sync();
     }
 

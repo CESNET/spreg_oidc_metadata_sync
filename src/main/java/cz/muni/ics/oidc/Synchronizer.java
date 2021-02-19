@@ -10,6 +10,9 @@ import cz.muni.ics.oidc.models.ResultCounter;
 import cz.muni.ics.oidc.props.ActionsProperties;
 import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.rpc.PerunAdapter;
+import de.danielbechler.diff.ObjectDifferBuilder;
+import de.danielbechler.diff.node.DiffNode;
+import de.danielbechler.diff.node.Visit;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 @Component
@@ -45,9 +49,14 @@ public class Synchronizer {
     private final String proxyIdentifierValue;
     private final ActionsProperties actionsProperties;
 
+    public static final String YES = "yes";
+    public static final String Y = "y";
+
     public static final String CIPHER_PARAMS = "AES/ECB/PKCS5PADDING";
     public final Cipher cipher;
     private final SecretKeySpec secretKeySpec;
+    private final Scanner scanner = new Scanner(System.in);
+    private boolean interactiveMode = false;
 
     @Autowired
     public Synchronizer(@NonNull PerunAdapter perunAdapter,
@@ -155,6 +164,15 @@ public class Synchronizer {
             MitreidClient c = new MitreidClient();
             setClientFields(c, attrs);
             c.setCreatedAt(new Date());
+            if (interactiveMode) {
+                System.out.println("Following client will be created");
+                System.out.println(c);
+                System.out.println("Do you want to proceed? (YES/no)");
+                String response = scanner.nextLine();
+                if (!Y.equalsIgnoreCase(response) && !YES.equalsIgnoreCase(response)) {
+                    return;
+                }
+            }
             clientRepository.saveClient(c);
             log.debug("Client created");
             res.incCreated();
@@ -167,8 +185,49 @@ public class Synchronizer {
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
         if (actionsProperties.isUpdate()) {
-            this.setClientFields(c, attrs);
-            clientRepository.updateClient(c.getId(), c);
+            MitreidClient toUpdate;
+            if (interactiveMode) {
+                MitreidClient updated = clientRepository.getClientByClientId(c.getClientId());
+                this.setClientFields(updated, attrs);
+                DiffNode diff = ObjectDifferBuilder.buildDefault().compare(c, updated);
+                if (diff.hasChanges()) {
+                    System.out.println("--------------------------------------------");
+                    diff.visit((node, visit) -> {
+                        if (node.isRootNode()) {
+                            return;
+                        }
+                        Object baseValue = node.canonicalGet(c);
+                        Object workingValue = node.canonicalGet(updated);
+                        if (node.getParentNode().isRootNode()) {
+                            System.out.printf("Changes in field '%s'\n", node.getElementSelector().toHumanReadableString());
+                            System.out.printf("  original: '%s'\n", baseValue);
+                            System.out.printf("  updated: '%s'\n", workingValue);
+                            System.out.println("  diff:");
+                        } else {
+                            if (baseValue == null) {
+                                System.out.printf("    added: '%s'\n", workingValue);
+                            } else if (workingValue == null) {
+                                System.out.printf("    removed: '%s'\n", baseValue);
+                            } else {
+                                System.out.printf("    changed: '%s' to: '%s'\n", baseValue, workingValue);
+                            }
+                        }
+                    });
+                    System.out.println("Do you want to proceed? (YES/no)");
+                    String response = scanner.nextLine();
+                    if (!Y.equalsIgnoreCase(response) && !YES.equalsIgnoreCase(response)) {
+                        return;
+                    } else {
+                        System.out.println("--------------------------------------------");
+                    }
+                }
+                toUpdate = updated;
+                clientRepository.updateClient(c.getId(), updated);
+            } else {
+                this.setClientFields(c, attrs);
+                toUpdate = c;
+            }
+            clientRepository.updateClient(c.getId(), toUpdate);
             log.debug("Client updated");
             res.incUpdated();
         } else {
@@ -179,17 +238,31 @@ public class Synchronizer {
     private void deleteClients(Set<String> foundClientIds, ResultCounter res) {
         Set<String> clientsToDelete = getClientIdsToDelete(foundClientIds);
         if (actionsProperties.isDelete()) {
-            try {
-                log.debug("Deleting clients with ids {}", clientsToDelete);
-                int deleted = 0;
-                if (!clientsToDelete.isEmpty()) {
-                    deleted += clientRepository.deleteByClientIds(clientsToDelete);
+            if (interactiveMode) {
+                for (String clientId: clientsToDelete) {
+                    MitreidClient c = clientRepository.getClientByClientId(clientId);
+                    System.out.println("About to remove following client");
+                    System.out.println(c);
+                    System.out.println("Do you want to proceed? (YES/no)");
+                    String response = scanner.nextLine();
+                    if (!Y.equalsIgnoreCase(response) && !YES.equalsIgnoreCase(response)) {
+                        continue;
+                    }
+                    clientRepository.deleteClient(c);
                 }
-                log.debug("Deleted {} clients", deleted);
-                res.incDeleted(deleted);
-            } catch (Exception e) {
-                log.warn("Caught exception when deleting unused clients", e);
-                res.incErrors();
+            } else {
+                try {
+                    log.debug("Deleting clients with ids {}", clientsToDelete);
+                    int deleted = 0;
+                    if (!clientsToDelete.isEmpty()) {
+                        deleted += clientRepository.deleteByClientIds(clientsToDelete);
+                    }
+                    log.debug("Deleted {} clients", deleted);
+                    res.incDeleted(deleted);
+                } catch (Exception e) {
+                    log.warn("Caught exception when deleting unused clients", e);
+                    res.incErrors();
+                }
             }
         } else {
             log.warn("Deleting of clients is disabled. Following clientIDs would be deleted: {}", clientsToDelete);
@@ -203,12 +276,9 @@ public class Synchronizer {
         c.setClientSecret(decrypt(attrs.get(perunAttrNames.getClientSecret()).valueAsString()));
         c.setClientName(attrs.get(perunAttrNames.getName()).valueAsMap().get("en"));
         c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
+        c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
         c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
-        Set<String> contacts = new HashSet<>();
-        contacts.add(attrs.get(perunAttrNames.getContacts()).valueAsString());
-        contacts.add(attrs.get(perunAttrNames.getContacts2()).valueAsString());
-        contacts.remove(null);
-        c.setContacts(contacts);
+        setContacts(c, attrs);
         Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                 && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
@@ -219,6 +289,18 @@ public class Synchronizer {
         c.setResponseTypes(new HashSet<>(attrs.get(perunAttrNames.getResponseTypes()).valueAsList()));
         c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
         c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
+    }
+
+    private void setContacts(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        Set<String> contacts = new HashSet<>();
+        for (String attr: perunAttrNames.getContacts()) {
+            //in case of string attribute, it will be returned as singleton array
+            if (attrs.containsKey(attr)) {
+                contacts.addAll(attrs.get(attr).valueAsList());
+            }
+        }
+        contacts.remove(null); // just to be sure
+        c.setContacts(contacts);
     }
 
     private String decrypt(String strToDecrypt)
@@ -255,4 +337,7 @@ public class Synchronizer {
         return s.substring(0, 32);
     }
 
+    public void setInteractive(boolean interactiveModeEnabled) {
+        this.interactiveMode = interactiveModeEnabled;
+    }
 }

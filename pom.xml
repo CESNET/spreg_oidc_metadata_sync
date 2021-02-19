@@ -19,6 +19,7 @@
         <nimbus-jose-jwt.version>8.17.1</nimbus-jose-jwt.version>
         <spring-security-oauth2.version>2.4.1.RELEASE</spring-security-oauth2.version>
         <eclipse-persistence-jpa.version>2.7.7</eclipse-persistence-jpa.version>
+        <java-object-diff.version>0.95</java-object-diff.version>
     </properties>
 
     <dependencies>
@@ -76,6 +77,11 @@
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.jpa</artifactId>
             <version>${eclipse-persistence-jpa.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>de.danielbechler</groupId>
+            <artifactId>java-object-diff</artifactId>
+            <version>${java-object-diff.version}</version>
         </dependency>
     </dependencies>
 

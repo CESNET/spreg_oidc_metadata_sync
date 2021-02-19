@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,8 +32,7 @@ public class AttrsMapping {
     private String description;
     private String redirectUris;
     private String privacyPolicy;
-    private String contacts;
-    private String contacts2;
+    private List<String> contacts;
     private String scopes;
     private String grantTypes;
     private String responseTypes;
@@ -41,8 +41,12 @@ public class AttrsMapping {
     private String issueRefreshTokens;
 
     public List<String> getNames() {
-        return Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, contacts, contacts2, scopes,
-                grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens);
+        List<String> attrNames = new ArrayList<>(
+                Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy,
+                scopes, grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens)
+        );
+        attrNames.addAll(contacts);
+        return attrNames;
     }
 
     @PostConstruct
