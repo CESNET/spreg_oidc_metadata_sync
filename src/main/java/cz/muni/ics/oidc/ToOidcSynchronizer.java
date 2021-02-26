@@ -42,6 +42,11 @@ public class ToOidcSynchronizer {
     private static final String Y = "y";
     private static final String DO_YOU_WANT_TO_PROCEED = "Do you want to proceed? (YES/no)";
 
+    public static final String OFFLINE_ACCESS = "offline_access";
+    public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String DEVICE = "device";
+    public static final String DEVICE_URN = "urn:ietf:params:oauth:grant-type:device_code";
+
     private final PerunAdapter perunAdapter;
     private final String proxyIdentifier;
     private final String proxyIdentifierValue;
@@ -270,6 +275,9 @@ public class ToOidcSynchronizer {
     private void setClientFields(MitreidClient c, Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
+        Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
+        Set<String> grantTypes = new HashSet<>(attrs.get(perunAttrNames.getGrantTypes()).valueAsList());
+
         c.setClientId(attrs.get(perunAttrNames.getClientId()).valueAsString());
         c.setClientSecret(Utils.decrypt(
                 attrs.get(perunAttrNames.getClientSecret()).valueAsString(), cipher, secretKeySpec));
@@ -278,13 +286,20 @@ public class ToOidcSynchronizer {
         c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
         c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
         setContacts(c, attrs);
-        Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                 && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
-            scopes.add("offline_access");
+            scopes.add(OFFLINE_ACCESS);
+            grantTypes.add(REFRESH_TOKEN);
+        }
+        if (scopes.contains(OFFLINE_ACCESS)) {
+            grantTypes.add(REFRESH_TOKEN);
+        }
+        if (grantTypes.contains(DEVICE)) {
+            grantTypes.remove(DEVICE);
+            grantTypes.add(DEVICE_URN);
         }
         c.setScope(scopes);
-        c.setGrantTypes(new HashSet<>(attrs.get(perunAttrNames.getGrantTypes()).valueAsList()));
+        c.setGrantTypes(grantTypes);
         c.setResponseTypes(new HashSet<>(attrs.get(perunAttrNames.getResponseTypes()).valueAsList()));
         c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
         c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));

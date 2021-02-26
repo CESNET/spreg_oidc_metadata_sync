@@ -34,7 +34,7 @@ public class ActionsProperties {
         log.debug("{}", this);
     }
 
-    public void clientIds(Set<String> protectedClientIds) {
+    public void setClientIds(Set<String> protectedClientIds) {
         if (protectedClientIds != null) {
             this.protectedClientIds.addAll(protectedClientIds);
         }
