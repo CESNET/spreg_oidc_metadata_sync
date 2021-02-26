@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 
@@ -16,6 +17,9 @@ public class Application implements CommandLineRunner {
     private final Synchronizer synchronizer;
 
     public static final String INTERACTIVE = "interactive";
+
+    public static final String MODE_TO_OIDC = "TO_OIDC";
+    public static final String MODE_TO_PERUN = "TO_PERUN";
 
     @Autowired
     public Application(Synchronizer synchronizer) {
@@ -36,7 +40,7 @@ public class Application implements CommandLineRunner {
         if (args.length > 0 && INTERACTIVE.equalsIgnoreCase(args[0])) {
             synchronizer.setInteractive(true);
         }
-        synchronizer.sync();
+        synchronizer.syncToOidc();
     }
 
 }

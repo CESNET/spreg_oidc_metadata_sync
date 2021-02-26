@@ -78,8 +78,8 @@ public class Synchronizer {
         cipher = Cipher.getInstance(CIPHER_PARAMS);
     }
 
-    public void sync() {
-        log.info("Started synchronization");
+    public void syncToOidc() {
+        log.info("Started synchronization to OIDC DB");
         ResultCounter res = new ResultCounter();
         Set<Facility> facilities;
         try {
@@ -138,6 +138,16 @@ public class Synchronizer {
         log.debug("Got MitreID client");
         log.trace("{}", mitreClient);
         return mitreClient;
+    }
+
+    private int deleteClients(Set<String> clientIds) {
+        log.debug("Deleting clients with ids {}", clientIds);
+        int deleted = 0;
+        if (!clientIds.isEmpty()) {
+            deleted += clientRepository.deleteByClientIds(clientIds);
+        }
+        log.debug("Deleted {} clients", deleted);
+        return deleted;
     }
 
     private Map<String, PerunAttributeValue> getAttrsFromPerun(Long facilityId)
