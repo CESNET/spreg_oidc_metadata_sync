@@ -39,11 +39,17 @@ public class AttrsMapping {
     private String introspection;
     private String postLogoutRedirectUris;
     private String issueRefreshTokens;
+    private String masterProxyIdentifier;
+    private String proxyIdentifier;
+    private String isTestSp;
+    private String isOidc;
+    private String managersGroupId;
 
     public List<String> getNames() {
         List<String> attrNames = new ArrayList<>(
                 Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy,
-                scopes, grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens)
+                        scopes, grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens,
+                        masterProxyIdentifier, proxyIdentifier, isTestSp, isOidc, managersGroupId)
         );
         attrNames.addAll(contacts);
         return attrNames;

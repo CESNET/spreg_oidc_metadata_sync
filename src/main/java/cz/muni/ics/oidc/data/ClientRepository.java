@@ -61,6 +61,11 @@ public class ClientRepository {
         return new HashSet<>(q.getResultList());
     }
 
+    public List<MitreidClient> getAll() {
+        TypedQuery<MitreidClient> q = manager.createNamedQuery(MitreidClient.QUERY_ALL, MitreidClient.class);
+        return q.getResultList();
+    }
+
     @Transactional
     public int deleteByClientIds(Set<String> clientIds) {
         Query q = manager.createNamedQuery(MitreidClient.DELETE_BY_CLIENT_IDS);

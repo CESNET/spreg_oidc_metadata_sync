@@ -8,8 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-
 @SpringBootApplication
 @Slf4j
 public class Application implements CommandLineRunner {
@@ -37,10 +35,29 @@ public class Application implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (args.length > 0 && INTERACTIVE.equalsIgnoreCase(args[0])) {
-            synchronizer.setInteractive(true);
+        int mode = 0;
+        if (args != null && args.length > 0) {
+            for (String str : args) {
+                if (StringUtils.hasText(str) && str.contains("--mode=")) {
+                    String modeStr = str.replace("--mode=", "");
+                    switch (modeStr.toUpperCase()) {
+                        case MODE_TO_OIDC: mode = 0; break;
+                        case MODE_TO_PERUN: mode = 1; break;
+                        default: mode = -1; break;
+                    }
+                }
+            }
+            if (args.length > 1 && INTERACTIVE.equalsIgnoreCase(args[1])) {
+                synchronizer.setInteractive(true);
+            }
         }
-        synchronizer.syncToOidc();
+        if (mode == 0) {
+            synchronizer.syncToOidc();
+        } else if (mode == 1) {
+            synchronizer.syncToPerun();
+        } else {
+            throw new IllegalArgumentException("Unrecognized SYNC mode, valid options are: ");
+        }
     }
 
 }

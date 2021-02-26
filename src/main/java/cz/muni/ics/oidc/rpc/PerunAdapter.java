@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
 import cz.muni.ics.oidc.models.Facility;
+import cz.muni.ics.oidc.models.Group;
 import cz.muni.ics.oidc.models.PerunAttribute;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
 import lombok.NonNull;
@@ -12,10 +13,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.Normalizer;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of the adapter via Perun RPC.
@@ -35,6 +38,8 @@ public class PerunAdapter {
 
     // MANAGERS
     public static final String ATTRIBUTES_MANAGER = "attributesManager";
+    public static final String FACILITIES_MANAGER = "facilitiesManager";
+    public static final String GROUPS_MANAGER = "groupsManager";
     public static final String SEARCHER = "searcher";
 
     // PARAMS
@@ -111,6 +116,68 @@ public class PerunAdapter {
 
         JsonNode perunResponse = perunConnector.post(SEARCHER, "getFacilities", params);
         return Mapper.mapFacilities(perunResponse);
+    }
+
+    public Facility createFacility(@NonNull String clientName, String clientDescription)
+            throws PerunUnknownException, PerunConnectionException
+    {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("name", clientName);
+        params.put("description", clientDescription);
+
+        JsonNode perunResponse = perunConnector.post(FACILITIES_MANAGER, "createFacility", params);
+        return Mapper.mapFacility(perunResponse);
+    }
+
+    public boolean deleteFacility(@NonNull Facility f) throws PerunUnknownException, PerunConnectionException {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("facility", f.getId());
+        params.put("force", true);
+
+        JsonNode res = perunConnector.post(FACILITIES_MANAGER, "deleteFacility", params);
+        return res == null || res.isNull();
+    }
+
+    public Group createGroup(@NonNull Long parentGroupId, @NonNull Group group)
+            throws PerunUnknownException, PerunConnectionException
+    {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("parentGroup", parentGroupId);
+        params.put("group", group.toJson());
+
+        JsonNode res = perunConnector.post(GROUPS_MANAGER, "createGroup", params);
+        return Mapper.mapGroup(res);
+    }
+
+    public boolean addGroupAsAdmins(@NonNull Long facilityId, @NonNull Long groupId)
+            throws PerunUnknownException, PerunConnectionException
+    {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("facility", facilityId);
+        params.put("authorizedGroup", groupId);
+
+        JsonNode res = perunConnector.post(FACILITIES_MANAGER, "addAdmin", params);
+        return res == null || res.isNull();
+    }
+
+    public boolean deleteGroup(@NonNull Long groupId) throws PerunUnknownException, PerunConnectionException {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("group", groupId);
+        params.put("force", true);
+
+        JsonNode res = perunConnector.post(GROUPS_MANAGER, "deleteGroup", params);
+        return res == null || res.isNull();
+    }
+
+    public Group getGroupByName(Long managersGroupVoId, String groupName)
+            throws PerunUnknownException, PerunConnectionException
+    {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("vo", managersGroupVoId);
+        params.put("name", groupName);
+
+        JsonNode res = perunConnector.post(GROUPS_MANAGER, "getGroupByName", params);
+        return Mapper.mapGroup(res);
     }
 
     private Map<String, PerunAttributeValue> extractAttrValues(Map<String, PerunAttribute> attributeMap) {
