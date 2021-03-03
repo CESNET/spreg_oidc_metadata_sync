@@ -16,6 +16,10 @@
     <packaging>jar</packaging>
 
     <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <final.name>mitreid-sync</final.name>
+        <!-- DEPENDENCIES -->
         <nimbus-jose-jwt.version>8.17.1</nimbus-jose-jwt.version>
         <spring-security-oauth2.version>2.4.1.RELEASE</spring-security-oauth2.version>
         <eclipse-persistence-jpa.version>2.7.7</eclipse-persistence-jpa.version>
@@ -97,6 +101,13 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <finalName>${final.name}</finalName>
+                </configuration>
             </plugin>
         </plugins>
     </build>

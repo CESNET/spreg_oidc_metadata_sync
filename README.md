@@ -75,15 +75,17 @@ actions:
 ### Running
 First, package the application. If you have already downloaded the compiled JAR file, skip to the next step.
 ```bash 
-./mvnw spring-boot:repackage
+./mvnw clean package -Dfinal.name=oidc-sync-v1
 ```
+#### Arguments:
+* final.name: name of the built jar
 
 Run the JAR with options to specify config file location and name (name defaults to application.yml)
 ```bash
 java -jar PATH/TO/RUNNABLE/JAR/FILE.jar --spring.config.location=/PATH/TO/DIR/WITH/CONFIG/
  --spring.config.name=FILE_NAME_WITHOUT_EXTENSION --mode=to_perun --interactive=true
 ```
-####Arguments:
+#### Arguments:
 * MODE: specifies the destination to which the sync will be performed
   * to_perun
   * to_oidc
