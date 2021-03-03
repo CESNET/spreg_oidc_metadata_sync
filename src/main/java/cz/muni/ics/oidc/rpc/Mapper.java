@@ -2,6 +2,7 @@ package cz.muni.ics.oidc.rpc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import cz.muni.ics.oidc.models.Facility;
+import cz.muni.ics.oidc.models.Group;
 import cz.muni.ics.oidc.models.PerunAttribute;
 import lombok.NonNull;
 
@@ -106,6 +107,24 @@ public class Mapper {
         }
 
         return mappedAttrs;
+    }
+
+    public static Group mapGroup(@NonNull JsonNode json) {
+        if (json.isNull()) {
+            return null;
+        }
+
+        Long id = json.get("id").asLong();
+        String shortName = json.get("shortName").asText();
+        String name = json.get("name").asText();
+        String description = json.get("description").asText();
+        Long parentGroupId = null;
+        if (json.hasNonNull("parentGroupId")) {
+            json.get("parentGroupId").asLong();
+        }
+        Long voId = json.get("voId").asLong();
+
+        return new Group(id, name, shortName, description, parentGroupId, voId);
     }
 
 }

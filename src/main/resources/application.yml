@@ -12,6 +12,10 @@ rpc:
   perunPassword: "pass"
 
 attributes:
+  proxy_identifier: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
+  is_test_sp: "urn:perun:facility:attribute-def:def:isTestSp"
+  is_oidc: "urn:perun:facility:attribute-def:def:isOidc"
+  manager_groups_id: "urn:perun:facility:attribute-def:def:managersGroupId"
   client_id: "urn:perun:facility:attribute-def:def:OIDCClientID"
   client_secret: "urn:perun:facility:attribute-def:def:OIDCClientSecret"
   name: "urn:perun:facility:attribute-def:def:serviceName"
@@ -26,16 +30,23 @@ attributes:
   post_logout_redirect_uris: "urn:perun:facility:attribute-def:def:OIDCPostLogoutRedirectURIs"
   issue_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCIssueRefreshTokens"
 
-encryption_secret: "secret_goes_here"
-
-proxy_identifier:
-  attr: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
-  value: "https://login.elixir-czech.org/idp/"
+conf:
+  langs: ["en", "cs"]
+  encryption_secret: "secret_goes_here"
+  proxy_identifier_value: "https://login.cesnet.cz/proxy/"
+  managers_group_vo_id: 1
+  managers_group_parent_group_id: 1
+  managers_group_parent_group_name: "Facility managers"
 
 actions:
-  create: TRUE
-  update: TRUE
-  delete: FALSE
+  to_oidc:
+    create: TRUE
+    update: TRUE
+    delete: FALSE
+  to_perun:
+    create: TRUE
+    update: TRUE
+    delete: FALSE
   protected_client_ids:
     - "cid1"
     - "cid2"

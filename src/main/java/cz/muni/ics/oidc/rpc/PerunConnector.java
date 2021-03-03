@@ -60,8 +60,7 @@ public class PerunConnector {
      * @throws PerunConnectionException Thrown when problem with connection to Perun interface occurs.
      */
     public JsonNode post(@NonNull String manager, @NonNull String method, @NonNull Map<String, Object> map)
-            throws PerunUnknownException, PerunConnectionException
-    {
+            throws PerunUnknownException, PerunConnectionException {
         if (!enabled) {
             return JsonNodeFactory.instance.nullNode();
         }
@@ -86,8 +85,7 @@ public class PerunConnector {
     }
 
     private JsonNode handleHttpClientErrorException(HttpClientErrorException ex, String actionUrl)
-            throws PerunUnknownException
-    {
+            throws PerunUnknownException {
         MediaType contentType = null;
         if (ex.getResponseHeaders() != null) {
             contentType = ex.getResponseHeaders().getContentType();
@@ -107,6 +105,8 @@ public class PerunConnector {
                         case "ResourceNotExistsException":
                         case "VoNotExistsException":
                         case "UserNotExistsException":
+                        case "GroupAlreadyExistsException":
+                        case "FacilityAlreadyExistsException":
                             return JsonNodeFactory.instance.nullNode();
                     }
                 }
