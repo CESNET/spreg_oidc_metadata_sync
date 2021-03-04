@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Component
 @Slf4j
@@ -284,6 +285,7 @@ public class ToOidcSynchronizer {
         c.setClientName(attrs.get(perunAttrNames.getName()).valueAsMap().get("en"));
         c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
         c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
+        setPolicyUri(c, attrs);
         c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
         setContacts(c, attrs);
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
@@ -305,8 +307,17 @@ public class ToOidcSynchronizer {
         c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
     }
 
+    private void setPolicyUri(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        PerunAttributeValue attributeValue = attrs.get(perunAttrNames.getPrivacyPolicy());
+        if (attributeValue.getValue().isObject()) {
+            c.setPolicyUri(attributeValue.valueAsMap().get("en"));
+        } else {
+            c.setPolicyUri(attributeValue.valueAsString());
+        }
+    }
+
     private void setContacts(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
-        Set<String> contacts = new HashSet<>();
+        Set<String> contacts = new TreeSet<>();
         for (String attr: perunAttrNames.getContacts()) {
             //in case of string attribute, it will be returned as singleton array
             if (attrs.containsKey(attr)) {
