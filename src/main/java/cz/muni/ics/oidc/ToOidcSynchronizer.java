@@ -324,7 +324,6 @@ public class ToOidcSynchronizer {
                 contacts.addAll(attrs.get(attr).valueAsList());
             }
         }
-        contacts.remove(null); // just to be sure
         c.setContacts(contacts);
     }
 
