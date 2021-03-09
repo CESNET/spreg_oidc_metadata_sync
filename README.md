@@ -36,7 +36,8 @@ attributes:
   description: "urn:perun:facility:attribute-def:def:serviceDescription"
   redirect_uris: "urn:perun:facility:attribute-def:def:OIDCRedirectURIs"
   privacy_policy: "urn:perun:facility:attribute-def:def:privacyPolicyURL"
-  contacts: "urn:perun:facility:attribute-def:def:administratorContact"
+  contacts:
+    - "urn:perun:facility:attribute-def:def:administratorContact"
   scopes: "urn:perun:facility:attribute-def:def:requiredScopes"
   grant_types: "urn:perun:facility:attribute-def:def:OIDCGrantTypes"
   response_types: "urn:perun:facility:attribute-def:def:OIDCResponseTypes"
