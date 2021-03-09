@@ -1,5 +1,8 @@
 package cz.muni.ics.oidc;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import cz.muni.ics.oidc.data.ClientRepository;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
@@ -286,7 +289,6 @@ public class ToOidcSynchronizer {
         c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
         c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
         setPolicyUri(c, attrs);
-        c.setPolicyUri(attrs.get(perunAttrNames.getPrivacyPolicy()).valueAsString());
         setContacts(c, attrs);
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                 && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
@@ -309,10 +311,12 @@ public class ToOidcSynchronizer {
 
     private void setPolicyUri(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
         PerunAttributeValue attributeValue = attrs.get(perunAttrNames.getPrivacyPolicy());
-        if (attributeValue.getValue().isObject()) {
+        if (PerunAttributeValue.MAP_TYPE.equals(attributeValue.getType())) {
             c.setPolicyUri(attributeValue.valueAsMap().get("en"));
-        } else {
+        } else if (PerunAttributeValue.STRING_TYPE.equals(attributeValue.getType())) {
             c.setPolicyUri(attributeValue.valueAsString());
+        } else {
+            c.setPolicyUri("");
         }
     }
 
