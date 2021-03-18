@@ -14,7 +14,6 @@ import java.util.Set;
 
 @Getter
 @Setter
-@ToString
 @EqualsAndHashCode
 @NoArgsConstructor
 @ConfigurationProperties(prefix = "conf")
@@ -35,4 +34,15 @@ public class ConfProperties {
         log.debug("{}", this.toString());
     }
 
+    @Override
+    public String toString() {
+        return "ConfProperties{" +
+                "langs=" + langs +
+                ", encryptionSecret='**************'" +
+                ", proxyIdentifierValue='" + proxyIdentifierValue + '\'' +
+                ", managersGroupVoId=" + managersGroupVoId +
+                ", managersGroupParentGroupId=" + managersGroupParentGroupId +
+                ", managersGroupParentGroupName='" + managersGroupParentGroupName + '\'' +
+                '}';
+    }
 }
