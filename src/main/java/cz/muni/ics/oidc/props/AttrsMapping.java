@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -26,24 +27,24 @@ import java.util.List;
 @Configuration
 public class AttrsMapping {
 
-    private String clientId;
-    private String clientSecret;
-    private String name;
-    private String description;
-    private String redirectUris;
-    private String privacyPolicy;
-    private List<String> contacts;
-    private String scopes;
-    private String grantTypes;
-    private String responseTypes;
-    private String introspection;
-    private String postLogoutRedirectUris;
-    private String issueRefreshTokens;
-    private String masterProxyIdentifier;
-    private String proxyIdentifier;
-    private String isTestSp;
-    private String isOidc;
-    private String managersGroupId;
+    @NonNull private String clientId;
+    @NonNull private String clientSecret;
+    @NonNull private String name;
+    @NonNull private String description;
+    @NonNull private String redirectUris;
+    @NonNull private String privacyPolicy;
+    @NonNull private List<String> contacts;
+    @NonNull private String scopes;
+    @NonNull private String grantTypes;
+    @NonNull private String responseTypes;
+    @NonNull private String introspection;
+    @NonNull private String postLogoutRedirectUris;
+    @NonNull private String issueRefreshTokens;
+    @NonNull private String masterProxyIdentifier;
+    @NonNull private String proxyIdentifier;
+    @NonNull private String isTestSp;
+    @NonNull private String isOidc;
+    @NonNull private String managersGroupId;
 
     public List<String> getNames() {
         List<String> attrNames = new ArrayList<>(

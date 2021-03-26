@@ -1,15 +1,11 @@
 package cz.muni.ics.oidc;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import cz.muni.ics.oidc.data.ClientRepository;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.MitreidClient;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
-import cz.muni.ics.oidc.models.ResultCounter;
 import cz.muni.ics.oidc.models.SyncResult;
 import cz.muni.ics.oidc.props.ActionsProperties;
 import cz.muni.ics.oidc.props.AttrsMapping;
@@ -28,9 +24,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
-import java.security.SecureRandom;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -38,13 +32,14 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static cz.muni.ics.oidc.Synchronizer.DO_YOU_WANT_TO_PROCEED;
+import static cz.muni.ics.oidc.Synchronizer.SPACER;
+import static cz.muni.ics.oidc.Synchronizer.Y;
+import static cz.muni.ics.oidc.Synchronizer.YES;
+
 @Component
 @Slf4j
 public class ToOidcSynchronizer {
-
-    private static final String YES = "yes";
-    private static final String Y = "y";
-    private static final String DO_YOU_WANT_TO_PROCEED = "Do you want to proceed? (YES/no)";
 
     public static final String OFFLINE_ACCESS = "offline_access";
     public static final String REFRESH_TOKEN = "refresh_token";
@@ -108,12 +103,12 @@ public class ToOidcSynchronizer {
 
     private void processFacility(Facility f, Set<String> foundClientIds, SyncResult res) {
         try {
-            log.debug("Processing facility '{}'", f);
-            if (f == null || f.getId() == null) {
-                log.warn("NULL facility or no ID for facility: '{}'", f);
+            if (f == null) {
+                log.warn("NULL facility given, generating error and continue on processing");
                 res.incErrors();
                 return;
             }
+            log.debug("Processing facility '{}'", f);
             Map<String, PerunAttributeValue> attrsFromPerun = getAttrsFromPerun(f.getId());
             String clientId = attrsFromPerun.get(perunAttrNames.getClientId()).valueAsString();
             if (!StringUtils.hasText(clientId)) {
@@ -187,58 +182,60 @@ public class ToOidcSynchronizer {
         }
     }
 
-    private void updateClient(MitreidClient c, Map<String, PerunAttributeValue> attrs, SyncResult res)
+    private void updateClient(MitreidClient original, Map<String, PerunAttributeValue> attrs, SyncResult res)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
         if (actionsProperties.getToOidc().isUpdate()) {
             MitreidClient toUpdate;
             if (interactiveMode) {
-                MitreidClient updated = clientRepository.getClientByClientId(c.getClientId());
+                MitreidClient updated = clientRepository.getClientByClientId(original.getClientId());
                 this.setClientFields(updated, attrs);
-                DiffNode diff = ObjectDifferBuilder.buildDefault().compare(c, updated);
+                DiffNode diff = ObjectDifferBuilder.buildDefault().compare(original, updated);
                 if (diff.hasChanges()) {
-                    System.out.println("--------------------------------------------");
-                    diff.visit((node, visit) -> {
-                        if (node.isRootNode()) {
-                            return;
-                        }
-                        Object baseValue = node.canonicalGet(c);
-                        Object workingValue = node.canonicalGet(updated);
-                        if (node.getParentNode().isRootNode()) {
-                            System.out.printf("Changes in field '%s'\n",
-                                    node.getElementSelector().toHumanReadableString());
-                            System.out.printf("  original: '%s'\n", baseValue);
-                            System.out.printf("  updated: '%s'\n", workingValue);
-                            System.out.println("  diff:");
-                        } else {
-                            if (baseValue == null) {
-                                System.out.printf("    added: '%s'\n", workingValue);
-                            } else if (workingValue == null) {
-                                System.out.printf("    removed: '%s'\n", baseValue);
-                            } else {
-                                System.out.printf("    changed: '%s' to: '%s'\n", baseValue, workingValue);
-                            }
-                        }
-                    });
+                    System.out.println(SPACER);
+                    diff.visit((node, visit) -> diffVisit(node, original, updated));
                     System.out.println(DO_YOU_WANT_TO_PROCEED);
                     String response = scanner.nextLine();
                     if (!Y.equalsIgnoreCase(response) && !YES.equalsIgnoreCase(response)) {
                         return;
                     } else {
-                        System.out.println("--------------------------------------------");
+                        System.out.println(SPACER);
                     }
                 }
                 toUpdate = updated;
-                clientRepository.updateClient(c.getId(), updated);
+                clientRepository.updateClient(original.getId(), updated);
             } else {
-                this.setClientFields(c, attrs);
-                toUpdate = c;
+                this.setClientFields(original, attrs);
+                toUpdate = original;
             }
-            clientRepository.updateClient(c.getId(), toUpdate);
+            clientRepository.updateClient(original.getId(), toUpdate);
             log.debug("Client updated");
             res.incUpdated();
         } else {
             log.warn("Updating clients is disabled, skip update");
+        }
+    }
+
+    private void diffVisit(DiffNode node, MitreidClient original, MitreidClient updated) {
+        if (node.isRootNode()) {
+            return;
+        }
+        Object baseValue = node.canonicalGet(original);
+        Object workingValue = node.canonicalGet(updated);
+        if (node.getParentNode().isRootNode()) {
+            System.out.printf("Changes in field '%s'\n",
+                    node.getElementSelector().toHumanReadableString());
+            System.out.printf("  original: '%s'\n", baseValue);
+            System.out.printf("  updated: '%s'\n", workingValue);
+            System.out.println("  diff:");
+        } else {
+            if (baseValue == null) {
+                System.out.printf("    added: '%s'\n", workingValue);
+            } else if (workingValue == null) {
+                System.out.printf("    removed: '%s'\n", baseValue);
+            } else {
+                System.out.printf("    changed: '%s' to: '%s'\n", baseValue, workingValue);
+            }
         }
     }
 

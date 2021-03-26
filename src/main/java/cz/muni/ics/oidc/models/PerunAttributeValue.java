@@ -19,6 +19,8 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true)
 public class PerunAttributeValue extends PerunAttributeValueAwareModel {
 
+    public static final String FIELD_ATTR_NAME = "attrName";
+
     @NonNull private String attrName;
 
     public PerunAttributeValue(String attrName, String type, JsonNode value) {
@@ -26,8 +28,7 @@ public class PerunAttributeValue extends PerunAttributeValueAwareModel {
         this.setAttrName(attrName);
     }
 
-    public PerunAttributeValue(String attrName, AttributeType type, JsonNode value)
-    {
+    public PerunAttributeValue(String attrName, AttributeType type, JsonNode value) {
         super(type, value);
         this.setAttrName(attrName);
     }

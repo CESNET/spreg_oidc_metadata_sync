@@ -37,4 +37,8 @@ public class Facility {
         this.name = name;
     }
 
+    public Object copy() {
+        return new Facility(id, name, description);
+    }
+
 }
