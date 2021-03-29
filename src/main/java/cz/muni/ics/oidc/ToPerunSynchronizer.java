@@ -276,7 +276,7 @@ public class ToPerunSynchronizer {
                 diff.append(String.format("Changes in attribute '%s'\n", oldAttr.getAttrName()));
                 diff.append(String.format("  original: '%s'\n", oldValue));
                 diff.append(String.format("  updated: '%s'\n", newValue));
-                diff.append("  diff:");
+                diff.append("  diff:\n");
                 if (oldValue.isNull()) {
                     diff.append(String.format("    added: '%s'\n", newValue));
                 } else if (newValue.isNull()) {
@@ -287,11 +287,17 @@ public class ToPerunSynchronizer {
                     String res = compareLists(oldValue, newValue);
                     if (StringUtils.hasText(res)) {
                         diff.append(res);
+                    } else {
+                        // if we are here, the sorted compare proved that no change has happened
+                        changed = false;
                     }
                 } else {
                     String res = compareMaps(oldValue, newValue);
                     if (StringUtils.hasText(res)) {
                         diff.append(res);
+                    } else {
+                        // if we are here, the key to key and value compare proved that no change has happened
+                        changed = false;
                     }
                 }
             }
@@ -309,16 +315,29 @@ public class ToPerunSynchronizer {
         Iterator<String> newValueIt = newValue.fieldNames();
         while (oldValueIt.hasNext()) {
             String key = oldValueIt.next();
+            if (key == null) {
+                log.warn("comparing maps - null key found");
+            }
             oldVals.put(key, oldValue.get(key).asText());
         }
         while (newValueIt.hasNext()) {
             String key = newValueIt.next();
+            if (key == null) {
+                log.warn("comparing maps - null key found");
+            }
             newVals.put(key, newValue.get(key).asText());
         }
 
         StringBuilder diff = new StringBuilder();
-        Set<String> allKeys = oldVals.keySet();
-        allKeys.addAll(newVals.keySet());
+        Set<String> allKeys = new HashSet<>();
+
+        if (!oldVals.isEmpty()) {
+            allKeys.addAll(oldVals.keySet());
+        }
+        if (!newVals.isEmpty()) {
+            allKeys.addAll(newVals.keySet());
+        }
+
         for (String key: allKeys) {
             String oldSubValue = oldVals.getOrDefault(key, null);
             String newSubValue = newVals.getOrDefault(key, null);
@@ -533,7 +552,12 @@ public class ToPerunSynchronizer {
         }
 
         setNewAttrValue(attributeMap, getTextNode(client.getPolicyUri()), perunAttrNames.getPrivacyPolicy());
-        setNewAttrValue(attributeMap, getTextNode(new ArrayList<>(client.getContacts()).get(0)), perunAttrNames.getContacts().get(0));
+        if (client.getContacts() != null && client.getContacts().size() > 0) {
+            setNewAttrValue(attributeMap, getTextNode(new ArrayList<>(client.getContacts()).get(0)),
+                    perunAttrNames.getContacts().get(0));
+        } else {
+            setNewAttrValue(attributeMap, JsonNodeFactory.instance.nullNode(), perunAttrNames.getContacts().get(0));
+        }
         setNewAttrValue(attributeMap, getArrayNode(client.getScope()), perunAttrNames.getScopes());
         setNewAttrValue(attributeMap, getArrayNode(client.getRedirectUris()), perunAttrNames.getRedirectUris());
         setNewAttrValue(attributeMap, getArrayNode(client.getGrantTypes()), perunAttrNames.getGrantTypes());
