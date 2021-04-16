@@ -6,15 +6,16 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
 import cz.muni.ics.oidc.props.ConnectorProperties;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.Map;
 
@@ -28,26 +29,18 @@ import static java.lang.System.currentTimeMillis;
  */
 @Component
 @Slf4j
+@Validated
 public class PerunConnector {
 
-    private final boolean enabled;
     private final String perunUrl;
     private final RestTemplate restTemplate;
 
     @Autowired
-    public PerunConnector(RestTemplate restTemplate, ConnectorProperties properties) {
+    public PerunConnector(@NotNull RestTemplate restTemplate,
+                          @NotNull ConnectorProperties properties)
+    {
         this.restTemplate = restTemplate;
-        this.enabled = properties.isEnabled();
         this.perunUrl = properties.getPerunUrl() + '/' + properties.getSerializer();
-    }
-
-    public PerunConnector(boolean enabled, @NonNull RestTemplate restTemplate, @NonNull String perunUrl) {
-        if (!StringUtils.hasText(perunUrl)) {
-            throw new IllegalArgumentException("PerunURL cannot be null nor empty");
-        }
-        this.enabled = enabled;
-        this.restTemplate = restTemplate;
-        this.perunUrl = perunUrl;
     }
 
     /**
@@ -59,12 +52,9 @@ public class PerunConnector {
      * @throws PerunUnknownException Thrown as wrapper of unknown exception thrown by Perun interface.
      * @throws PerunConnectionException Thrown when problem with connection to Perun interface occurs.
      */
-    public JsonNode post(@NonNull String manager, @NonNull String method, @NonNull Map<String, Object> map)
-            throws PerunUnknownException, PerunConnectionException {
-        if (!enabled) {
-            return JsonNodeFactory.instance.nullNode();
-        }
-
+    public JsonNode post(@NotBlank String manager, @NotBlank String method, @NotNull Map<String, Object> map)
+            throws PerunUnknownException, PerunConnectionException
+    {
         String actionUrl = this.perunUrl + '/' + manager + '/' + method;
 
         // make the call

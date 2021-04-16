@@ -37,6 +37,7 @@ conf:
   managers_group_vo_id: 1
   managers_group_parent_group_id: 1
   managers_group_parent_group_name: "Facility managers"
+  probe_output_file_location: "/etc/mitreid/cesnet/sync_res.txt"
 
 actions:
   to_oidc:

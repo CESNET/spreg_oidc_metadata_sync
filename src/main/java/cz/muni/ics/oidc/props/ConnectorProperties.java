@@ -8,8 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 
 @Component
 @ConfigurationProperties(prefix = "rpc", ignoreInvalidFields = true)
@@ -17,20 +20,23 @@ import javax.annotation.PostConstruct;
 @Setter
 @EqualsAndHashCode
 @Slf4j
+@Validated
 public class ConnectorProperties {
 
-    @NonNull private String perunUrl = "https://perun-dev.cesnet.cz/ba/rpc";
-    @NonNull private String perunUser;
-    @NonNull private String perunPassword;
-    @NonNull private String serializer = "json";
-    private boolean enabled = true;
-    private int requestTimeout = 30000;
-    private int connectTimeout = 30000;
-    private int socketTimeout = 60000;
-    private int maxConnections = 20;
-    private int maxConnectionsPerRoute = 18;
+    @NotBlank private String perunUrl = "https://perun-dev.cesnet.cz/ba/rpc";
+    @NotBlank private String perunUser;
+    @NotBlank private String perunPassword;
+    @NotBlank private String serializer = "json";
+    @Min(1) private int requestTimeout = 30000;
+    @Min(1) private int connectTimeout = 30000;
+    @Min(1) private int socketTimeout = 60000;
+    @Min(1) private int maxConnections = 20;
+    @Min(1) private int maxConnectionsPerRoute = 18;
 
-    public void setPerunUrl(@NonNull String perunUrl) {
+    public void setPerunUrl(String perunUrl) {
+        if (!StringUtils.hasText(perunUrl)) {
+            throw new IllegalArgumentException("PerunURL cannot be blank");
+        }
         if (perunUrl.endsWith("/")) {
             perunUrl = perunUrl.substring(0, perunUrl.length() - 1);
         }
@@ -40,10 +46,10 @@ public class ConnectorProperties {
 
     public void setSerializer(@NonNull String serializer) {
         if (!StringUtils.hasText(serializer)) {
-            throw new IllegalArgumentException("Serializer cannot be null nor empty");
+            serializer = "json";
+        } else {
+            serializer = serializer.replaceAll("/", "");
         }
-        serializer = serializer.replaceAll("/", "");
-
         this.serializer = serializer;
     }
 
@@ -58,9 +64,8 @@ public class ConnectorProperties {
         return "ConnectorProperties{" +
                 "perunUrl='" + perunUrl + '\'' +
                 ", perunUser='" + perunUser + '\'' +
-                ", perunPassword='**************'" +
+                ", perunPassword=[PROTECTED]" +
                 ", serializer='" + serializer + '\'' +
-                ", enabled=" + enabled +
                 ", requestTimeout=" + requestTimeout +
                 ", connectTimeout=" + connectTimeout +
                 ", socketTimeout=" + socketTimeout +
