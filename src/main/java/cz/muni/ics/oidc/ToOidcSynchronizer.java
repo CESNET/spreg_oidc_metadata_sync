@@ -49,6 +49,9 @@ public class ToOidcSynchronizer {
     private final PerunAdapter perunAdapter;
     private final String proxyIdentifier;
     private final String proxyIdentifierValue;
+    private final Long accessTokenTimeout;
+    private final Long idTokenTimeout;
+    private final Long refreshTokenTimeout;
     private final AttrsMapping perunAttrNames;
     private final ClientRepository clientRepository;
     private final ActionsProperties actionsProperties;
@@ -76,6 +79,9 @@ public class ToOidcSynchronizer {
         this.secretKeySpec = secretKeySpec;
         this.proxyIdentifier = perunAttrNames.getProxyIdentifier();
         this.proxyIdentifierValue = confProperties.getProxyIdentifierValue();
+        this.accessTokenTimeout = confProperties.getAccessTokenTimeout();
+        this.idTokenTimeout = confProperties.getIdTokenTimeout();
+        this.refreshTokenTimeout = confProperties.getRefreshTokenTimeout();
     }
 
     public SyncResult syncToOidc(boolean interactiveMode) {
@@ -304,6 +310,15 @@ public class ToOidcSynchronizer {
         c.setResponseTypes(new HashSet<>(attrs.get(perunAttrNames.getResponseTypes()).valueAsList()));
         c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
         c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
+        if (this.accessTokenTimeout !== null) {
+            c.setAccessTokenValiditySeconds(this.accessTokenTimeout);
+        }
+        if (this.idTokenTimeout !== null) {
+            c.setIdTokenValiditySeconds(this.idTokenTimeout);
+        }
+        if (this.refreshTokenTimeout !== null) {
+            c.setRefreshTokenValiditySeconds(this.refreshTokenTimeout);
+        }
     }
 
     private void setPolicyUri(MitreidClient c, Map<String, PerunAttributeValue> attrs) {

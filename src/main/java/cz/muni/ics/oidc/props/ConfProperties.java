@@ -33,6 +33,9 @@ public class ConfProperties {
     @NotEmpty private Set<String> langs = new HashSet<>();
     @NotBlank private String encryptionSecret;
     @NotBlank private String proxyIdentifierValue;
+    @Nullable private Long accessTokenTimeout;
+    @Nullable private Long idTokenTimeout;
+    @Nullable private Long refreshTokenTimeout;
     @Min(1) private Long managersGroupVoId;
     @Min(1) private long managersGroupParentGroupId;
     @NotBlank private String managersGroupParentGroupName;
@@ -57,6 +60,9 @@ public class ConfProperties {
                 "langs=" + langs +
                 ", encryptionSecret=[PROTECTED]" +
                 ", proxyIdentifierValue='" + proxyIdentifierValue + '\'' +
+                ", accessTokenTimeout=" + accessTokenTimeout +
+                ", idTokenTimeout=" + idTokenTimeout +
+                ", refreshTokenTimeout=" + refreshTokenTimeout +
                 ", managersGroupVoId=" + managersGroupVoId +
                 ", managersGroupParentGroupId=" + managersGroupParentGroupId +
                 ", managersGroupParentGroupName='" + managersGroupParentGroupName + '\'' +
