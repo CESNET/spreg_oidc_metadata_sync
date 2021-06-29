@@ -310,14 +310,14 @@ public class ToOidcSynchronizer {
         c.setResponseTypes(new HashSet<>(attrs.get(perunAttrNames.getResponseTypes()).valueAsList()));
         c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
         c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
-        if (this.accessTokenTimeout !== null) {
-            c.setAccessTokenValiditySeconds(this.accessTokenTimeout);
+        if (this.accessTokenTimeout != null) {
+            c.setAccessTokenValiditySeconds(Math.toIntExact(this.accessTokenTimeout));
         }
-        if (this.idTokenTimeout !== null) {
-            c.setIdTokenValiditySeconds(this.idTokenTimeout);
+        if (this.idTokenTimeout != null) {
+            c.setIdTokenValiditySeconds(Math.toIntExact(this.idTokenTimeout));
         }
-        if (this.refreshTokenTimeout !== null) {
-            c.setRefreshTokenValiditySeconds(this.refreshTokenTimeout);
+        if (this.refreshTokenTimeout != null) {
+            c.setRefreshTokenValiditySeconds(Math.toIntExact(this.refreshTokenTimeout));
         }
     }
 
