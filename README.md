@@ -51,6 +51,10 @@ conf:
   langs: ["en", "cs"] 
   encryption_secret: "secret_goes_here"
   proxy_identifier_value: "https://login.cesnet.cz/proxy/"
+  ### TOKEN TIMEOUTS - IF UNSPECIFIED, CURRENT VALUES ARE KEPT ###
+  access_token_timeout: 28800 # default is 3600
+  id_token_timeout: 600 # default is 600
+  refresh_token_timeout: 604800 # default is 0
   ### VO_ID, PARENT_GROUP_ID AND PARENT_GROUP_NAME FOR GROUPS CONTAINING MANAGERS ###
   managers_group_vo_id: 1
   managers_group_parent_group_id: 1
