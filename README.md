@@ -26,10 +26,6 @@ rpc:
 
 ### MAPPING OF CLIENT PROPERTIES TO PERUN ATTRIBUTES ###
 attributes:
-  proxy_identifier: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
-  is_test_sp: "urn:perun:facility:attribute-def:def:isTestSp"
-  is_oidc: "urn:perun:facility:attribute-def:def:isOidc"
-  manager_groups_id: "urn:perun:facility:attribute-def:def:managersGroupId"
   client_id: "urn:perun:facility:attribute-def:def:OIDCClientID"
   client_secret: "urn:perun:facility:attribute-def:def:OIDCClientSecret"
   name: "urn:perun:facility:attribute-def:def:serviceName"
@@ -44,6 +40,12 @@ attributes:
   introspection: "urn:perun:facility:attribute-def:def:OIDCAllowIntrospection"
   post_logout_redirect_uris: "urn:perun:facility:attribute-def:def:OIDCPostLogoutRedirectURIs"
   issue_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCIssueRefreshTokens"
+  proxy_identifier: "urn:perun:facility:attribute-def:def:proxyIdentifiers"
+  master_proxy_identifier: "urn:perun:facility:attribute-def:def:masterProxyIdentifier"
+  is_test_sp: "urn:perun:facility:attribute-def:def:isTestSp"
+  is_oidc: "urn:perun:facility:attribute-def:def:isOidc"
+  manager_groups_id: "urn:perun:facility:attribute-def:def:managersGroupId"
+  home_page_uris: "urn:perun:facility:attribute-def:def:informationURL"
 
 ### CONFIGURATION FOR SOME COMMON THINGS ###
 conf:
@@ -59,6 +61,8 @@ conf:
   managers_group_vo_id: 1
   managers_group_parent_group_id: 1
   managers_group_parent_group_name: "Facility managers"
+  ### OUTPUT FOR PROBE CHECK ####
+  probe_output_file_location: "/etc/mitreid/check_probe_result.txt"
 
 ### CONFIGURATION OF SYNC ACTIONS ###
 ### ENABLE ACTIONS AND SPECIFY PROTECTED MitreID CLIENTS ###
@@ -92,8 +96,8 @@ java -jar PATH/TO/RUNNABLE/JAR/FILE.jar --spring.config.location=/PATH/TO/DIR/WI
 ```
 #### Arguments:
 * MODE: specifies the destination to which the sync will be performed
-  * to_perun
-  * to_oidc
+  * to\_perun
+  * to\_oidc
 * INTERACTIVE: if set to TRUE, each action has to be confirmed by the user
   * true
   * false
