@@ -31,6 +31,7 @@ public class Synchronizer {
     private final ToOidcSynchronizer toOidcSynchronizer;
     private final ConfProperties confProperties;
     private boolean interactive = false;
+    private String test = "test";
 
     @Autowired
     public Synchronizer(ToPerunSynchronizer toPerunSynchronizer,
