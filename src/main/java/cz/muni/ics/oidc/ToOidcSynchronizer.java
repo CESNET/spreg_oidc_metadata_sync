@@ -293,6 +293,7 @@ public class ToOidcSynchronizer {
         c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
         setPolicyUri(c, attrs);
         setContacts(c, attrs);
+        setClientUri(c, attrs);
         if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                 && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
             scopes.add(OFFLINE_ACCESS);
@@ -343,5 +344,23 @@ public class ToOidcSynchronizer {
         c.setContacts(contacts);
     }
 
+    private void setClientUri(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        if (attrs == null || perunAttrNames.getHomePageUris() == null) {
+            return;
+        }
 
+        for (String attr: perunAttrNames.getHomePageUris()) {
+            PerunAttributeValue attributeValue = attrs.get(attr);
+
+            if (PerunAttributeValue.MAP_TYPE.equals(attributeValue.getType()) &&
+                    StringUtils.hasText(attributeValue.valueAsMap().get("en"))) {
+                c.setClientUri(attributeValue.valueAsMap().get("en"));
+                break;
+            } else if (PerunAttributeValue.STRING_TYPE.equals(attributeValue.getType()) &&
+                    StringUtils.hasText(attributeValue.valueAsString())) {
+                c.setClientUri(attributeValue.valueAsString());
+                break;
+            }
+        }
+    }
 }

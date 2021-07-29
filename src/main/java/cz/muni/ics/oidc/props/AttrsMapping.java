@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +48,7 @@ public class AttrsMapping {
     @NotBlank private String isTestSp;
     @NotBlank private String isOidc;
     @NotBlank private String managersGroupId;
+    private List<String> homePageUris;
 
     public List<String> getNames() {
         List<String> attrNames = new ArrayList<>(
@@ -57,6 +57,11 @@ public class AttrsMapping {
                         masterProxyIdentifier, proxyIdentifier, isTestSp, isOidc, managersGroupId)
         );
         attrNames.addAll(contacts);
+
+        if (homePageUris != null) {
+            attrNames.addAll(homePageUris);
+        }
+
         return attrNames;
     }
 
