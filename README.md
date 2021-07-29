@@ -1,4 +1,8 @@
 # SPReg (Perun) -> MitreID sync
+[![Checkstyle](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/checkstyle.yml/badge.svg)](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/checkstyle.yml)
+
+[![Maven build](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/maven.yml/badge.svg)](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/maven.yml)
+
 Command-line tool for synchronization of data stored about the clients in Perun to MitreID. 
 Serves as one-shot synchronization. To run it periodically, we advise to create a cron job.
 
