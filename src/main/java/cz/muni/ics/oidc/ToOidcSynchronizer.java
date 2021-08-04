@@ -5,6 +5,7 @@ import cz.muni.ics.oidc.exception.PerunConnectionException;
 import cz.muni.ics.oidc.exception.PerunUnknownException;
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.MitreidClient;
+import cz.muni.ics.oidc.models.PKCEAlgorithm;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
 import cz.muni.ics.oidc.models.SyncResult;
 import cz.muni.ics.oidc.props.ActionsProperties;
@@ -24,13 +25,16 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static cz.muni.ics.oidc.Synchronizer.DO_YOU_WANT_TO_PROCEED;
 import static cz.muni.ics.oidc.Synchronizer.SPACER;
@@ -42,9 +46,40 @@ import static cz.muni.ics.oidc.Synchronizer.YES;
 public class ToOidcSynchronizer {
 
     public static final String OFFLINE_ACCESS = "offline_access";
-    public static final String REFRESH_TOKEN = "refresh_token";
+
+    // flow types
+    public static final String AUTHORIZATION_CODE = "authorization code";
     public static final String DEVICE = "device";
-    public static final String DEVICE_URN = "urn:ietf:params:oauth:grant-type:device_code";
+    public static final String IMPLICIT = "implicit";
+    public static final String HYBRID = "hybrid";
+
+    // grant types
+    public static final String GRANT_AUTHORIZATION_CODE = "authorization_code";
+    public static final String GRANT_IMPLICIT = "implicit";
+    public static final String GRANT_DEVICE = "urn:ietf:params:oauth:grant-type:device_code";
+    public static final String GRANT_HYBRID = "hybrid";
+    public static final String GRANT_REFRESH_TOKEN = "refresh_token";
+
+    // response types
+    public static final String RESPONSE_CODE = "code";
+    public static final String RESPONSE_TOKEN = "token";
+    public static final String RESPONSE_ID_TOKEN = "id_token";
+    public static final String RESPONSE_ID_TOKEN_TOKEN = RESPONSE_ID_TOKEN + " " + RESPONSE_TOKEN;
+    public static final String RESPONSE_CODE_ID_TOKEN = RESPONSE_CODE + " " + RESPONSE_ID_TOKEN;
+    public static final String RESPONSE_CODE_TOKEN = RESPONSE_CODE + " " + RESPONSE_TOKEN;
+    public static final String RESPONSE_CODE_ID_TOKEN_TOKEN = RESPONSE_CODE_ID_TOKEN + " " + RESPONSE_TOKEN;
+//    public static final String RESPONSE_NONE = "none";
+
+    // response types for grant types
+    public static final String[] RESPONSE_TYPE_AUTH_CODE = { RESPONSE_CODE };
+    public static final String[] RESPONSE_TYPE_IMPLICIT = { RESPONSE_TOKEN, RESPONSE_ID_TOKEN, RESPONSE_ID_TOKEN_TOKEN };
+    public static final String[] RESPONSE_TYPE_HYBRID = {
+        RESPONSE_CODE_TOKEN, RESPONSE_CODE_ID_TOKEN, RESPONSE_CODE_ID_TOKEN_TOKEN
+    };
+
+    public static final String PKCE_TYPE_NONE = "none";
+    public static final String PKCE_TYPE_PLAIN = "plain code challenge";
+    public static final String PKCE_TYPE_SHA256 = "SHA256 code challenge";
 
     private final PerunAdapter perunAdapter;
     private final String proxyIdentifier;
@@ -282,35 +317,106 @@ public class ToOidcSynchronizer {
     private void setClientFields(MitreidClient c, Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
-        Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
-        Set<String> grantTypes = new HashSet<>(attrs.get(perunAttrNames.getGrantTypes()).valueAsList());
-
         c.setClientId(attrs.get(perunAttrNames.getClientId()).valueAsString());
         c.setClientSecret(Utils.decrypt(
                 attrs.get(perunAttrNames.getClientSecret()).valueAsString(), cipher, secretKeySpec));
         c.setClientName(attrs.get(perunAttrNames.getName()).valueAsMap().get("en"));
         c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
         c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
+        c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
+        c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
+        c.setScope(new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList()));
         setPolicyUri(c, attrs);
         setContacts(c, attrs);
         setClientUri(c, attrs);
-        if (attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
-                && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean()) {
-            scopes.add(OFFLINE_ACCESS);
-            grantTypes.add(REFRESH_TOKEN);
+        setGrantAndResponseTypes(c, attrs);
+        setRefreshTokens(c, attrs);
+        setTokenTimeouts(c);
+    }
+
+    private void setRefreshTokens(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        Set<String> grantTypes = c.getAuthorizedGrantTypes();
+        if (grantTypes == null) {
+            grantTypes = new HashSet<>();
         }
-        if (scopes.contains(OFFLINE_ACCESS)) {
-            grantTypes.add(REFRESH_TOKEN);
+        if (grantAllowsRefreshTokens(grantTypes)) {
+            boolean requestedViaAttr = attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
+                    && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean();
+            boolean requestedViaScopes = c.getScope().contains(OFFLINE_ACCESS);
+            if (requestedViaAttr || requestedViaScopes) {
+                c.getScope().add(OFFLINE_ACCESS);
+                c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
+                c.setClearAccessTokensOnRefresh(true);
+                c.setReuseRefreshToken(true);
+                if (this.refreshTokenTimeout != null) {
+                    c.setRefreshTokenValiditySeconds(Math.toIntExact(this.refreshTokenTimeout));
+                }
+            }
         }
-        if (grantTypes.contains(DEVICE)) {
-            grantTypes.remove(DEVICE);
-            grantTypes.add(DEVICE_URN);
+    }
+
+    private boolean grantAllowsRefreshTokens(Set<String> grantTypes) {
+        return !grantTypes.isEmpty()
+                && (grantTypes.contains(GRANT_DEVICE)
+                    || grantTypes.contains(GRANT_AUTHORIZATION_CODE)
+                    || grantTypes.contains(GRANT_HYBRID));
+    }
+
+    private void setGrantAndResponseTypes(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        List<String> grantTypesAttrValue = attrs.get(perunAttrNames.getGrantTypes()).valueAsList().stream()
+                .map(String::toLowerCase).collect(Collectors.toList());
+
+        Set<String> grantTypes = new HashSet<>();
+        Set<String> responseTypes = new HashSet<>();
+
+        if (grantTypesAttrValue.contains(AUTHORIZATION_CODE)) {
+            grantTypes.add(GRANT_AUTHORIZATION_CODE);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_AUTH_CODE));
         }
-        c.setScope(scopes);
+
+        if (grantTypesAttrValue.contains(IMPLICIT)) {
+            grantTypes.add(GRANT_IMPLICIT);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_IMPLICIT));
+        }
+
+        if (grantTypesAttrValue.contains(HYBRID)) {
+            grantTypes.add(GRANT_HYBRID);
+            grantTypes.add(GRANT_AUTHORIZATION_CODE);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_HYBRID));
+        }
+
+        if (grantTypesAttrValue.contains(DEVICE)) {
+            grantTypes.add(GRANT_DEVICE);
+        }
+
+        if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)) {
+            setPKCEOptionsForAuthorizationCode(c, attrs);
+        }
+
         c.setGrantTypes(grantTypes);
-        c.setResponseTypes(new HashSet<>(attrs.get(perunAttrNames.getResponseTypes()).valueAsList()));
-        c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
-        c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
+        c.setResponseTypes(responseTypes);
+    }
+
+    private void setPKCEOptionsForAuthorizationCode(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        String codeChallengeType = attrs.get(perunAttrNames.getCodeChallengeType()).valueAsString();
+        c.setCodeChallengeMethod(null);
+        if (!PKCE_TYPE_NONE.equalsIgnoreCase(codeChallengeType)) {
+            if (PKCE_TYPE_PLAIN.equalsIgnoreCase(codeChallengeType)) {
+                preparePkce(c);
+                c.setCodeChallengeMethod(PKCEAlgorithm.plain);
+            } else if (PKCE_TYPE_SHA256.equalsIgnoreCase(codeChallengeType)) {
+                preparePkce(c);
+                c.setCodeChallengeMethod(PKCEAlgorithm.S256);
+            }
+        }
+    }
+
+    private void preparePkce(MitreidClient c) {
+        c.setClientSecret(null);
+        c.setTokenEndpointAuthMethod(MitreidClient.AuthMethod.NONE);
+    }
+
+    private void setTokenTimeouts(MitreidClient c) {
         if (this.accessTokenTimeout != null) {
             c.setAccessTokenValiditySeconds(Math.toIntExact(this.accessTokenTimeout));
         }

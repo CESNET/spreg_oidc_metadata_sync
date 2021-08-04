@@ -13,6 +13,7 @@ import cz.muni.ics.oidc.exception.PerunUnknownException;
 import cz.muni.ics.oidc.models.Facility;
 import cz.muni.ics.oidc.models.Group;
 import cz.muni.ics.oidc.models.MitreidClient;
+import cz.muni.ics.oidc.models.PKCEAlgorithm;
 import cz.muni.ics.oidc.models.PerunAttribute;
 import cz.muni.ics.oidc.models.PerunAttributeValue;
 import cz.muni.ics.oidc.models.SyncResult;
@@ -51,6 +52,7 @@ import static cz.muni.ics.oidc.Synchronizer.DO_YOU_WANT_TO_PROCEED;
 import static cz.muni.ics.oidc.Synchronizer.SPACER;
 import static cz.muni.ics.oidc.Synchronizer.Y;
 import static cz.muni.ics.oidc.Synchronizer.YES;
+import static cz.muni.ics.oidc.ToOidcSynchronizer.*;
 
 @Component
 @Slf4j
@@ -560,9 +562,8 @@ public class ToPerunSynchronizer {
         }
         setNewAttrValue(attributeMap, getArrayNode(client.getScope()), perunAttrNames.getScopes());
         setNewAttrValue(attributeMap, getArrayNode(client.getRedirectUris()), perunAttrNames.getRedirectUris());
-        setNewAttrValue(attributeMap, getArrayNode(client.getGrantTypes()), perunAttrNames.getGrantTypes());
-        setNewAttrValue(attributeMap, getArrayNode(client.getResponseTypes()), perunAttrNames.getResponseTypes());
-        setNewAttrValue(attributeMap, getBooleanNode(client.isReuseRefreshToken()), perunAttrNames.getIssueRefreshTokens());
+        setGrantsAndResponses(attributeMap, client);
+        setNewAttrValue(attributeMap, getBooleanNode(client.getScope().contains(OFFLINE_ACCESS)), perunAttrNames.getIssueRefreshTokens());
         setNewAttrValue(attributeMap, getBooleanNode(client.isAllowIntrospection()), perunAttrNames.getIntrospection());
         setNewAttrValue(attributeMap, getArrayNode(client.getPostLogoutRedirectUris()), perunAttrNames.getPostLogoutRedirectUris());
         setNewAttrValue(attributeMap, getTextNode(confProperties.getProxyIdentifierValue()), perunAttrNames.getMasterProxyIdentifier());
@@ -571,6 +572,43 @@ public class ToPerunSynchronizer {
             setNewAttrValue(attributeMap, getBooleanNode(true), perunAttrNames.getIsTestSp());
         }
         setNewAttrValue(attributeMap, getBooleanNode(true), perunAttrNames.getIsOidc());
+    }
+
+    private void setGrantsAndResponses(Map<String, PerunAttribute> attributeMap, MitreidClient client) {
+        Set<String> grantTypes = client.getGrantTypes();
+        Set<String> perunGrantTypes = convertGrantTypesForPerun(grantTypes);
+        setNewAttrValue(attributeMap, getArrayNode(perunGrantTypes), perunAttrNames.getGrantTypes());
+        String codeChallengeType = extractCodeChallengeType(client);
+        setNewAttrValue(attributeMap, getTextNode(codeChallengeType), perunAttrNames.getCodeChallengeType());
+    }
+
+    private String extractCodeChallengeType(MitreidClient client) {
+        PKCEAlgorithm alg = client.getCodeChallengeMethod();
+        if (alg == null || PKCEAlgorithm.NONE.equals(alg)) {
+            return PKCE_TYPE_NONE;
+        } else if (PKCEAlgorithm.plain.equals(alg)) {
+            return PKCE_TYPE_PLAIN;
+        } else if (PKCEAlgorithm.S256.equals(alg)) {
+            return PKCE_TYPE_SHA256;
+        }
+        return alg.getName();
+    }
+
+    private Set<String> convertGrantTypesForPerun(Set<String> grantTypes) {
+        Set<String> result = new HashSet<>();
+        grantTypes.forEach(grantType -> {
+            switch (grantType) {
+                case GRANT_AUTHORIZATION_CODE: result.add(AUTHORIZATION_CODE);
+                    break;
+                case GRANT_IMPLICIT: result.add(IMPLICIT);
+                    break;
+                case GRANT_HYBRID: result.add(HYBRID);
+                    break;
+                case GRANT_DEVICE: result.add(DEVICE);
+                    break;
+            }
+        });
+        return result;
     }
 
     private ObjectNode getLocalizedObjectNode(String val) {
