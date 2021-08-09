@@ -40,7 +40,7 @@ attributes:
     - "urn:perun:facility:attribute-def:def:administratorContact"
   scopes: "urn:perun:facility:attribute-def:def:requiredScopes"
   grant_types: "urn:perun:facility:attribute-def:def:OIDCGrantTypes"
-  response_types: "urn:perun:facility:attribute-def:def:OIDCResponseTypes"
+  code_challenge_type: "urn:perun:facility:attribute-def:def:OIDCCodeChallengeType"
   introspection: "urn:perun:facility:attribute-def:def:OIDCAllowIntrospection"
   post_logout_redirect_uris: "urn:perun:facility:attribute-def:def:OIDCPostLogoutRedirectURIs"
   issue_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCIssueRefreshTokens"
@@ -49,7 +49,8 @@ attributes:
   is_test_sp: "urn:perun:facility:attribute-def:def:isTestSp"
   is_oidc: "urn:perun:facility:attribute-def:def:isOidc"
   manager_groups_id: "urn:perun:facility:attribute-def:def:managersGroupId"
-  home_page_uris: "urn:perun:facility:attribute-def:def:informationURL"
+  home_page_uris:
+    - "urn:perun:facility:attribute-def:def:informationURL"
 
 ### CONFIGURATION FOR SOME COMMON THINGS ###
 conf:

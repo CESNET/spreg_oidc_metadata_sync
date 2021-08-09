@@ -39,21 +39,23 @@ public class AttrsMapping {
     @NotEmpty private List<String> contacts;
     @NotBlank private String scopes;
     @NotBlank private String grantTypes;
-    @NotBlank private String responseTypes;
+    @NotBlank private String codeChallengeType;
     @NotBlank private String introspection;
     @NotBlank private String postLogoutRedirectUris;
     @NotBlank private String issueRefreshTokens;
+    private List<String> homePageUris;
+
+    // MitreID client non-related
     @NotBlank private String masterProxyIdentifier;
     @NotBlank private String proxyIdentifier;
     @NotBlank private String isTestSp;
     @NotBlank private String isOidc;
     @NotBlank private String managersGroupId;
-    private List<String> homePageUris;
 
     public List<String> getNames() {
         List<String> attrNames = new ArrayList<>(
-                Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy,
-                        scopes, grantTypes, responseTypes, introspection, postLogoutRedirectUris, issueRefreshTokens,
+                Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, scopes,
+                        grantTypes, codeChallengeType, introspection, postLogoutRedirectUris, issueRefreshTokens,
                         masterProxyIdentifier, proxyIdentifier, isTestSp, isOidc, managersGroupId)
         );
         attrNames.addAll(contacts);
