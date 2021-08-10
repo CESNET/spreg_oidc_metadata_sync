@@ -335,7 +335,7 @@ public class ToOidcSynchronizer {
     }
 
     private void setRefreshTokens(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
-        Set<String> grantTypes = c.getAuthorizedGrantTypes();
+        Set<String> grantTypes = c.getGrantTypes();
         if (grantTypes == null) {
             grantTypes = new HashSet<>();
         }
@@ -343,6 +343,7 @@ public class ToOidcSynchronizer {
             boolean requestedViaAttr = attrs.containsKey(perunAttrNames.getIssueRefreshTokens())
                     && attrs.get(perunAttrNames.getIssueRefreshTokens()).valueAsBoolean();
             boolean requestedViaScopes = c.getScope().contains(OFFLINE_ACCESS);
+            log.debug("Refresh tokens requested via: attr({}), scopes({})", requestedViaAttr, requestedViaScopes);
             if (requestedViaAttr || requestedViaScopes) {
                 c.getScope().add(OFFLINE_ACCESS);
                 c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
@@ -356,10 +357,12 @@ public class ToOidcSynchronizer {
     }
 
     private boolean grantAllowsRefreshTokens(Set<String> grantTypes) {
-        return !grantTypes.isEmpty()
+        boolean res = !grantTypes.isEmpty()
                 && (grantTypes.contains(GRANT_DEVICE)
-                    || grantTypes.contains(GRANT_AUTHORIZATION_CODE)
-                    || grantTypes.contains(GRANT_HYBRID));
+                || grantTypes.contains(GRANT_AUTHORIZATION_CODE)
+                || grantTypes.contains(GRANT_HYBRID));
+        log.debug("Grants '{}' {} issuing refresh tokens", grantTypes, res ? "allow" : "disallow");
+        return res;
     }
 
     private void setGrantAndResponseTypes(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
@@ -372,21 +375,26 @@ public class ToOidcSynchronizer {
         if (grantTypesAttrValue.contains(AUTHORIZATION_CODE)) {
             grantTypes.add(GRANT_AUTHORIZATION_CODE);
             responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_AUTH_CODE));
+            log.debug("Added grant '{}' with response types '{}'", GRANT_AUTHORIZATION_CODE, RESPONSE_TYPE_AUTH_CODE);
         }
 
         if (grantTypesAttrValue.contains(IMPLICIT)) {
             grantTypes.add(GRANT_IMPLICIT);
             responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_IMPLICIT));
+            log.debug("Added grant '{}' with response types '{}'", GRANT_IMPLICIT, RESPONSE_TYPE_IMPLICIT);
         }
 
         if (grantTypesAttrValue.contains(HYBRID)) {
             grantTypes.add(GRANT_HYBRID);
             grantTypes.add(GRANT_AUTHORIZATION_CODE);
             responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_HYBRID));
+            log.debug("Added grants '{} {}' with response types '{}'", GRANT_HYBRID, GRANT_AUTHORIZATION_CODE,
+                    RESPONSE_TYPE_HYBRID);
         }
 
         if (grantTypesAttrValue.contains(DEVICE)) {
             grantTypes.add(GRANT_DEVICE);
+            log.debug("Added grant '{}'", GRANT_DEVICE);
         }
 
         if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)) {
@@ -398,13 +406,17 @@ public class ToOidcSynchronizer {
     }
 
     private void setPKCEOptionsForAuthorizationCode(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        log.trace("Setting PKCE options");
         String codeChallengeType = attrs.get(perunAttrNames.getCodeChallengeType()).valueAsString();
         c.setCodeChallengeMethod(null);
         if (!PKCE_TYPE_NONE.equalsIgnoreCase(codeChallengeType)) {
+            log.debug("Code challenge requested is not equal to '{}'", PKCE_TYPE_NONE);
             if (PKCE_TYPE_PLAIN.equalsIgnoreCase(codeChallengeType)) {
+                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_PLAIN);
                 preparePkce(c);
                 c.setCodeChallengeMethod(PKCEAlgorithm.plain);
             } else if (PKCE_TYPE_SHA256.equalsIgnoreCase(codeChallengeType)) {
+                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_SHA256);
                 preparePkce(c);
                 c.setCodeChallengeMethod(PKCEAlgorithm.S256);
             }
