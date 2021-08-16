@@ -6,6 +6,14 @@
 Command-line tool for synchronization of data stored about the clients in Perun to MitreID. 
 Serves as one-shot synchronization. To run it periodically, we advise to create a cron job.
 
+## Contribution
+
+This repository uses [Conventional Commits](https://www.npmjs.com/package/@commitlint/config-conventional).
+Any change that significantly changes behavior in a backward-incompatible way or requires a configuration change must be marked as BREAKING CHANGE.
+
+### Available scopes:
+* script
+
 ### Configuration
 ```yaml
 ---
