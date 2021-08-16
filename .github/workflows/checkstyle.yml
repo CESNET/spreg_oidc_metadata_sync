@@ -15,9 +15,6 @@ jobs:
       uses: nikitasavinov/checkstyle-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        reporter: 'github-pr-check'
-        tool_name: 'testtool'
-        checkstyle_config: google_checks.xml
-        filter_mode: diff_context
-        level: error
-        fail_on_error: true        
+        reporter: 'github-pr-review'
+        fail_on_error: true
+        level: 'error'
