@@ -6,6 +6,8 @@
 Command-line tool for synchronization of data stored about the clients in Perun to MitreID. 
 Serves as one-shot synchronization. To run it periodically, we advise to create a cron job.
 
+E4
+
 ### Configuration
 ```yaml
 ---
