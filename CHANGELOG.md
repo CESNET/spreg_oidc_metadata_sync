@@ -1,7 +1,5 @@
-# Change Log
-All notable changes to this project will be documented in this file.
-
-## [Unreleased]
+## [1.0.0]
+- Initial release with automated semantic release
 
 ## [v0.2.0]
 - Instead of grant types, sync "flowTypes"
@@ -11,7 +9,7 @@ All notable changes to this project will be documented in this file.
 ## [v0.1.0]
 - First release
 
-[Unreleased]: https://github.com/CESNET/spreg_oidc_metadata_sync/tree/master
+[1.0.0]: https://github.com/CESNET/spreg_oidc_metadata_sync/tree/1.0.0
 [v0.2.0]: https://github.com/CESNET/spreg_oidc_metadata_sync/tree/v0.2.0
 [v0.1.0]: https://github.com/CESNET/spreg_oidc_metadata_sync/tree/v0.1.0
 
