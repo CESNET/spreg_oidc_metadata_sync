@@ -11,6 +11,7 @@ import cz.muni.ics.oidc.models.SyncResult;
 import cz.muni.ics.oidc.props.ActionsProperties;
 import cz.muni.ics.oidc.props.AttrsMapping;
 import cz.muni.ics.oidc.props.ConfProperties;
+import cz.muni.ics.oidc.props.GrantTypesTimeoutsProperties;
 import cz.muni.ics.oidc.rpc.PerunAdapter;
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
@@ -28,6 +29,7 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +62,12 @@ public class ToOidcSynchronizer {
     public static final String GRANT_HYBRID = "hybrid";
     public static final String GRANT_REFRESH_TOKEN = "refresh_token";
 
+    // timeouts
+    public static final String ACCESS_TOKEN_TIMEOUT = "access_token";
+    public static final String ID_TOKEN_TIMEOUT = "id_token";
+    public static final String REFRESH_TOKEN_TIMEOUT = "refresh_token";
+    public static final String DEVICE_CODE_TIMEOUT = "device_code";
+
     // response types
     public static final String RESPONSE_CODE = "code";
     public static final String RESPONSE_TOKEN = "token";
@@ -84,12 +92,10 @@ public class ToOidcSynchronizer {
     private final PerunAdapter perunAdapter;
     private final String proxyIdentifier;
     private final String proxyIdentifierValue;
-    private final Long accessTokenTimeout;
-    private final Long idTokenTimeout;
-    private final Long refreshTokenTimeout;
     private final AttrsMapping perunAttrNames;
     private final ClientRepository clientRepository;
     private final ActionsProperties actionsProperties;
+    private final GrantTypesTimeoutsProperties grantTypesTimeoutsProperties;
     private final Cipher cipher;
     private final SecretKeySpec secretKeySpec;
 
@@ -103,6 +109,7 @@ public class ToOidcSynchronizer {
                               @NonNull AttrsMapping perunAttrNames,
                               @NonNull ClientRepository clientRepository,
                               @NonNull ActionsProperties actionsProperties,
+                              @NonNull GrantTypesTimeoutsProperties grantTypesTimeoutsProperties,
                               @NonNull Cipher cipher,
                               @NonNull SecretKeySpec secretKeySpec)
     {
@@ -110,13 +117,11 @@ public class ToOidcSynchronizer {
         this.perunAttrNames = perunAttrNames;
         this.clientRepository = clientRepository;
         this.actionsProperties = actionsProperties;
+        this.grantTypesTimeoutsProperties = grantTypesTimeoutsProperties;
         this.cipher = cipher;
         this.secretKeySpec = secretKeySpec;
         this.proxyIdentifier = perunAttrNames.getProxyIdentifier();
         this.proxyIdentifierValue = confProperties.getProxyIdentifierValue();
-        this.accessTokenTimeout = confProperties.getAccessTokenTimeout();
-        this.idTokenTimeout = confProperties.getIdTokenTimeout();
-        this.refreshTokenTimeout = confProperties.getRefreshTokenTimeout();
     }
 
     public SyncResult syncToOidc(boolean interactiveMode) {
@@ -331,7 +336,7 @@ public class ToOidcSynchronizer {
         setClientUri(c, attrs);
         setGrantAndResponseTypes(c, attrs);
         setRefreshTokens(c, attrs);
-        setTokenTimeouts(c);
+        setTokenTimeouts(c, attrs);
     }
 
     private void setRefreshTokens(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
@@ -349,9 +354,6 @@ public class ToOidcSynchronizer {
                 c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
                 c.setClearAccessTokensOnRefresh(true);
                 c.setReuseRefreshToken(true);
-                if (this.refreshTokenTimeout != null) {
-                    c.setRefreshTokenValiditySeconds(Math.toIntExact(this.refreshTokenTimeout));
-                }
             }
         }
     }
@@ -428,15 +430,70 @@ public class ToOidcSynchronizer {
         c.setTokenEndpointAuthMethod(MitreidClient.AuthMethod.NONE);
     }
 
-    private void setTokenTimeouts(MitreidClient c) {
-        if (this.accessTokenTimeout != null) {
-            c.setAccessTokenValiditySeconds(Math.toIntExact(this.accessTokenTimeout));
+    private void setTokenTimeouts(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        Set<String> grantTypes = c.getGrantTypes();
+        PerunAttributeValue attrValue = attrs.getOrDefault(perunAttrNames.getTokenTimeouts(), null);
+
+        Map<String, String> attrValueAsMap;
+        if (attrValue != null) {
+            attrValueAsMap = attrValue.valueAsMap();
+        } else {
+            attrValueAsMap = new HashMap<>();
         }
-        if (this.idTokenTimeout != null) {
-            c.setIdTokenValiditySeconds(Math.toIntExact(this.idTokenTimeout));
+
+        Map<String, Integer> tokenTimeouts = new HashMap<>();
+        tokenTimeouts.put(ACCESS_TOKEN_TIMEOUT, 0);
+        tokenTimeouts.put(ID_TOKEN_TIMEOUT, 0);
+        tokenTimeouts.put(REFRESH_TOKEN_TIMEOUT, 0);
+        tokenTimeouts.put(DEVICE_CODE_TIMEOUT, 0);
+
+        if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)) {
+            setDefaultTokenTimeoutsByGrantType(grantTypesTimeoutsProperties.getAuthorizationCode(), tokenTimeouts);
         }
-        if (this.refreshTokenTimeout != null) {
-            c.setRefreshTokenValiditySeconds(Math.toIntExact(this.refreshTokenTimeout));
+        if (grantTypes.contains(GRANT_IMPLICIT)) {
+            setDefaultTokenTimeoutsByGrantType(grantTypesTimeoutsProperties.getImplicit(), tokenTimeouts);
+        }
+        if (grantTypes.contains(GRANT_HYBRID)) {
+            setDefaultTokenTimeoutsByGrantType(grantTypesTimeoutsProperties.getHybrid(), tokenTimeouts);
+        }
+        if (grantTypes.contains(GRANT_DEVICE)) {
+            setDefaultTokenTimeoutsByGrantType(grantTypesTimeoutsProperties.getDevice(), tokenTimeouts);
+        }
+
+        if (attrValueAsMap.containsKey(ACCESS_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(ACCESS_TOKEN_TIMEOUT, Integer.parseInt(attrValueAsMap.get(ACCESS_TOKEN_TIMEOUT)));
+        }
+        if (attrValueAsMap.containsKey(ID_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(ID_TOKEN_TIMEOUT, Integer.parseInt(attrValueAsMap.get(ID_TOKEN_TIMEOUT)));
+        }
+        if (attrValueAsMap.containsKey(REFRESH_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(REFRESH_TOKEN_TIMEOUT, Integer.parseInt(attrValueAsMap.get(REFRESH_TOKEN_TIMEOUT)));
+        }
+        if (attrValueAsMap.containsKey(DEVICE_CODE_TIMEOUT)) {
+            tokenTimeouts.put(DEVICE_CODE_TIMEOUT, Integer.parseInt(attrValueAsMap.get(DEVICE_CODE_TIMEOUT)));
+        }
+
+        c.setAccessTokenValiditySeconds(tokenTimeouts.get(ACCESS_TOKEN_TIMEOUT));
+        c.setIdTokenValiditySeconds(tokenTimeouts.get(ID_TOKEN_TIMEOUT));
+        c.setRefreshTokenValiditySeconds(tokenTimeouts.get(REFRESH_TOKEN_TIMEOUT));
+        c.setDeviceCodeValiditySeconds(tokenTimeouts.get(DEVICE_CODE_TIMEOUT));
+    }
+
+    private void setDefaultTokenTimeoutsByGrantType(
+            GrantTypesTimeoutsProperties.GrantType grantType,
+            Map<String, Integer> tokenTimeouts
+    ) {
+        if (grantType.getAccessToken() > tokenTimeouts.get(ACCESS_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(ACCESS_TOKEN_TIMEOUT, grantType.getAccessToken());
+        }
+        if (grantType.getIdToken() > tokenTimeouts.get(ID_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(ID_TOKEN_TIMEOUT, grantType.getIdToken());
+        }
+        if (grantType.getRefreshToken() > tokenTimeouts.get(REFRESH_TOKEN_TIMEOUT)) {
+            tokenTimeouts.put(REFRESH_TOKEN_TIMEOUT, grantType.getRefreshToken());
+        }
+        if (grantType.getDeviceCode() > tokenTimeouts.get(DEVICE_CODE_TIMEOUT)) {
+            tokenTimeouts.put(DEVICE_CODE_TIMEOUT, grantType.getDeviceCode());
         }
     }
 

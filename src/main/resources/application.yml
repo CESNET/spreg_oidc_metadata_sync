@@ -39,6 +39,26 @@ conf:
   managers_group_parent_group_name: "Facility managers"
   probe_output_file_location: "/etc/mitreid/cesnet/sync_res.txt"
 
+
+# All values are in seconds
+tokens:
+  authorization_code:
+    access_token: 3600
+    id_token: 3600
+    refresh_token: 7200
+  implicit:
+    access_token: 14400
+    id_token: 14400
+  hybrid:
+    access_token: 14400
+    id_token: 14400
+    refresh_token: 28800
+  device:
+    access_token: 3600
+    id_token: 3600
+    refresh_token: 7200
+    device_code: 600
+
 actions:
   to_oidc:
     create: TRUE

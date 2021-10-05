@@ -44,6 +44,7 @@ public class AttrsMapping {
     @NotBlank private String postLogoutRedirectUris;
     @NotBlank private String issueRefreshTokens;
     private List<String> homePageUris;
+    private String tokenTimeouts;
 
     // MitreID client non-related
     @NotBlank private String masterProxyIdentifier;
@@ -62,6 +63,10 @@ public class AttrsMapping {
 
         if (homePageUris != null) {
             attrNames.addAll(homePageUris);
+        }
+
+        if (tokenTimeouts != null) {
+            attrNames.add(tokenTimeouts);
         }
 
         return attrNames;
