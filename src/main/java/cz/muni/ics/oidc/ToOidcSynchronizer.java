@@ -72,17 +72,22 @@ public class ToOidcSynchronizer {
     public static final String RESPONSE_CODE = "code";
     public static final String RESPONSE_TOKEN = "token";
     public static final String RESPONSE_ID_TOKEN = "id_token";
+    public static final String RESPONSE_TOKEN_ID_TOKEN = RESPONSE_TOKEN + " " + RESPONSE_ID_TOKEN;
     public static final String RESPONSE_ID_TOKEN_TOKEN = RESPONSE_ID_TOKEN + " " + RESPONSE_TOKEN;
     public static final String RESPONSE_CODE_ID_TOKEN = RESPONSE_CODE + " " + RESPONSE_ID_TOKEN;
     public static final String RESPONSE_CODE_TOKEN = RESPONSE_CODE + " " + RESPONSE_TOKEN;
     public static final String RESPONSE_CODE_TOKEN_ID_TOKEN = RESPONSE_CODE_TOKEN + " " + RESPONSE_ID_TOKEN;
+    public static final String RESPONSE_CODE_ID_TOKEN_TOKEN = RESPONSE_CODE_ID_TOKEN + " " + RESPONSE_TOKEN;
 //    public static final String RESPONSE_NONE = "none";
 
     // response types for grant types
     public static final String[] RESPONSE_TYPE_AUTH_CODE = { RESPONSE_CODE };
-    public static final String[] RESPONSE_TYPE_IMPLICIT = { RESPONSE_TOKEN, RESPONSE_ID_TOKEN, RESPONSE_ID_TOKEN_TOKEN };
+    public static final String[] RESPONSE_TYPE_IMPLICIT = {
+            RESPONSE_ID_TOKEN, RESPONSE_TOKEN, RESPONSE_ID_TOKEN_TOKEN, RESPONSE_TOKEN_ID_TOKEN
+    };
     public static final String[] RESPONSE_TYPE_HYBRID = {
-        RESPONSE_CODE_TOKEN, RESPONSE_CODE_ID_TOKEN, RESPONSE_CODE_TOKEN_ID_TOKEN
+            RESPONSE_CODE_TOKEN, RESPONSE_CODE_ID_TOKEN, RESPONSE_CODE_ID_TOKEN,
+            RESPONSE_CODE_ID_TOKEN_TOKEN, RESPONSE_CODE_TOKEN_ID_TOKEN
     };
 
     public static final String PKCE_TYPE_NONE = "none";
