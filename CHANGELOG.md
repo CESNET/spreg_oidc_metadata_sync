@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.1...v2.0.2) (2021-10-14)
+
+
+### Bug Fixes
+
+* 🐛 Fix response types ([#23](https://github.com/CESNET/spreg_oidc_metadata_sync/issues/23)) ([8b006ac](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/8b006ac2b238ba52c14a7ad12a72ee13971ddb0c))
+
 ## [2.0.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.0...v2.0.1) (2021-10-14)
 
 
