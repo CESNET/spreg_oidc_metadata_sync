@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.0...v2.0.1) (2021-10-14)
+
+
+### Bug Fixes
+
+* 🐛 wrong order in hybrid full response ([#22](https://github.com/CESNET/spreg_oidc_metadata_sync/issues/22)) ([186206f](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/186206f02845638ed2658ea56d21fc764624439f))
+
 # [2.0.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v1.0.0...v2.0.0) (2021-10-05)
 
 
