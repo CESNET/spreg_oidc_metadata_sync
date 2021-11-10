@@ -4,13 +4,17 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     ["@semantic-release/exec", {
-      "prepareCmd": "mvn versions:set -DnewVersion=${nextRelease.version}; mvn versions:commit"
+      "prepareCmd": "./update-versions.sh ${nextRelease.version} && mvn clean install"
     }],
     "@semantic-release/changelog",
-    "@semantic-release/github",
     ["@semantic-release/git", {
       "assets": ["CHANGELOG.md", "pom.xml"],
       "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+    }],
+    ["@semantic-release/github", {
+      "assets": [
+        {"path": "target/mitreid-sync.jar"}
+      ]
     }]
   ]
 }
