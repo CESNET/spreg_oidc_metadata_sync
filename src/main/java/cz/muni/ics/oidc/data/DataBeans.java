@@ -27,6 +27,7 @@ public class DataBeans {
         ds.setJdbcUrl(jdbcProperties.getUrl());
         ds.setUsername(jdbcProperties.getUsername());
         ds.setPassword(jdbcProperties.getPassword());
+        ds.setMaximumPoolSize(1);
         return ds;
     }
 
