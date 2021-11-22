@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.1.0...v2.1.1) (2021-11-22)
+
+
+### Bug Fixes
+
+* 🐛 Limit pool size to 1 connection only ([42680ed](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/42680ed4be78093007d635b5a30e61083627b992))
+
 # [2.1.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.2...v2.1.0) (2021-11-22)
 
 
