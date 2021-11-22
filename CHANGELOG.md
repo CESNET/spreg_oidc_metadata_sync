@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.2...v2.1.0) (2021-11-22)
+
+
+### Features
+
+* 🎸 Enable PostgreSQL ([92d6cc6](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/92d6cc6818de6caae2dfb2696c46074f9a32f5db))
+
 ## [2.0.2](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.0.1...v2.0.2) (2021-10-14)
 
 
