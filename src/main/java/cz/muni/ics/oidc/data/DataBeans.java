@@ -31,9 +31,11 @@ public class DataBeans {
     }
 
     @Bean
-    public JpaVendorAdapter jpaAdapter() {
+    @Autowired
+    public JpaVendorAdapter jpaAdapter(@NonNull JdbcProperties jdbcProperties) {
         EclipseLinkJpaVendorAdapter adapter = new EclipseLinkJpaVendorAdapter();
-        adapter.setDatabasePlatform("org.eclipse.persistence.platform.database.MySQLPlatform");
+        adapter.setDatabasePlatform(jdbcProperties.getPlatform());
+
         adapter.setShowSql(false);
         return adapter;
     }

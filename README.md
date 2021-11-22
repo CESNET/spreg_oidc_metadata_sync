@@ -29,6 +29,7 @@ jdbc:
   password: "password"
   url: "jdbc:mariadb://localhost:3306/oidcdb"
   driver_class_name: "org.mariadb.jdbc.Driver"
+  platform: "org.eclipse.persistence.platform.database.MySQLPlatform"
 
 ### CONNECTION TO PERUN RPC ###
 rpc:
