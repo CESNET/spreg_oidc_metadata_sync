@@ -1,3 +1,16 @@
+# [3.0.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.1.1...v3.0.0) (2022-01-19)
+
+
+### Features
+
+* 🎸 By default rotate refresh tokens ([8dcab3b](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/8dcab3badf8ff84912299e64c4ea6d144a098cf1))
+
+
+### BREAKING CHANGES
+
+* 🧨 For some RPs, this might be breaking, if they rely on reusing the
+refresh token.
+
 ## [2.1.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.1.0...v2.1.1) (2021-11-22)
 
 
