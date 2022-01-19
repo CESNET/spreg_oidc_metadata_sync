@@ -358,7 +358,7 @@ public class ToOidcSynchronizer {
                 c.getScope().add(OFFLINE_ACCESS);
                 c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
                 c.setClearAccessTokensOnRefresh(true);
-                c.setReuseRefreshToken(true);
+                c.setReuseRefreshToken(false);
             }
         }
     }
