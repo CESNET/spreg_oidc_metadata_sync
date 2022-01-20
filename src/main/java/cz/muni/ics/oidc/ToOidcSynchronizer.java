@@ -107,6 +107,7 @@ public class ToOidcSynchronizer {
     private final Scanner scanner = new Scanner(System.in);
 
     private boolean interactiveMode = false;
+    private boolean proceedToDelete = true;
 
     @Autowired
     public ToOidcSynchronizer(@NonNull PerunAdapter perunAdapter,
@@ -147,8 +148,12 @@ public class ToOidcSynchronizer {
         for (Facility f : facilities) {
             processFacility(f, foundClientIds, res);
         }
-        log.info("Removing old clients");
-        deleteClients(foundClientIds, res);
+        if (proceedToDelete) {
+            log.info("Removing old clients");
+            deleteClients(foundClientIds, res);
+        } else {
+            log.warn("Script has disabled removing of old clients. This might be due to Peruns unreachability! Check previous logs for more info.");
+        }
         return res;
     }
 
@@ -179,6 +184,10 @@ public class ToOidcSynchronizer {
                 updateClient(mitreClient, attrsFromPerun, res);
             }
             log.info("Client with id '{}' processed", clientId);
+        } catch (PerunConnectionException | PerunUnknownException ex) {
+            log.warn("Caught exception from Perun. Can be unreachable. Disabling client removal!", ex);
+            proceedToDelete = false;
+            res.incErrors();
         } catch (Exception e) {
             log.warn("Caught exception when syncing facility {}", f, e);
             res.incErrors();
