@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.0.0...v3.0.1) (2022-01-24)
+
+
+### Bug Fixes
+
+* 🐛 End prematurely if Peurn has thrown an exception ([2607a5e](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/2607a5e1af167da1e6648a59161e2ba9d386a190))
+
 # [3.0.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v2.1.1...v3.0.0) (2022-01-19)
 
 
