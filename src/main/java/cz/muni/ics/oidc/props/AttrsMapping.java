@@ -9,6 +9,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.annotation.PostConstruct;
@@ -45,6 +46,7 @@ public class AttrsMapping {
     @NotBlank private String issueRefreshTokens;
     private List<String> homePageUris;
     private String tokenTimeouts;
+    private String reuseRefreshTokens;
 
     // MitreID client non-related
     @NotBlank private String masterProxyIdentifier;
@@ -65,8 +67,12 @@ public class AttrsMapping {
             attrNames.addAll(homePageUris);
         }
 
-        if (tokenTimeouts != null) {
+        if (StringUtils.hasText(tokenTimeouts)) {
             attrNames.add(tokenTimeouts);
+        }
+
+        if (StringUtils.hasText(reuseRefreshTokens)) {
+            attrNames.add(reuseRefreshTokens);
         }
 
         return attrNames;
