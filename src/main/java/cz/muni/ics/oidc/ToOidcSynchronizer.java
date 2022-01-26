@@ -364,11 +364,19 @@ public class ToOidcSynchronizer {
             boolean requestedViaScopes = c.getScope().contains(OFFLINE_ACCESS);
             log.debug("Refresh tokens requested via: attr({}), scopes({})", requestedViaAttr, requestedViaScopes);
             if (requestedViaAttr || requestedViaScopes) {
-                c.getScope().add(OFFLINE_ACCESS);
-                c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
-                c.setClearAccessTokensOnRefresh(true);
-                c.setReuseRefreshToken(false);
+                setUpRefreshTokens(c, attrs);
             }
+        }
+    }
+
+    private void setUpRefreshTokens(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        c.getScope().add(OFFLINE_ACCESS);
+        c.getGrantTypes().add(GRANT_REFRESH_TOKEN);
+        c.setClearAccessTokensOnRefresh(true);
+        c.setReuseRefreshToken(false);
+        PerunAttributeValue reuseTokens = attrs.getOrDefault(perunAttrNames.getReuseRefreshTokens(), null);
+        if (reuseTokens != null) {
+            c.setReuseRefreshToken(reuseTokens.valueAsBoolean());
         }
     }
 

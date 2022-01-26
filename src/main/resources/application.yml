@@ -34,6 +34,8 @@ attributes:
   issue_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCIssueRefreshTokens"
   home_page_uris:
     - "urn:perun:facility:attribute-def:def:informationURL"
+  token_timeouts: "urn:perun:facility:attribute-def:def:OIDCTokenTimeouts"
+  reuse_refresh_tokens: "urn:perun:facility:attribute-def:def:OIDCReuseRefreshTokens"
 
 conf:
   langs: ["en", "cs"]
