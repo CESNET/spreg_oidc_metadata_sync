@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.0.1...v3.1.0) (2022-01-26)
+
+
+### Features
+
+* 🎸 Sync reuse of refresh tokens setting ([a10ddd4](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/a10ddd4740384ca1d32d47ddb71baef087fed862))
+
 ## [3.0.1](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.0.0...v3.0.1) (2022-01-24)
 
 
