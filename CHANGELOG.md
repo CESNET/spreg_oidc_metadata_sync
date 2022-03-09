@@ -1,3 +1,11 @@
+## [3.1.3](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.2...v3.1.3) (2022-03-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.nimbusds:nimbus-jose-jwt to v9.21 ([17a12a5](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/17a12a5155e8347d6ee092d335c2eaa7088ada8a))
+* **deps:** update dependency org.springframework.boot:spring-boot-starter-parent to v2.6.4 ([00ef7bb](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/00ef7bb241f1c06b80afbac6b98d5455b3d09830))
+
 ## [3.1.2](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.1...v3.1.2) (2022-02-21)
 
 
