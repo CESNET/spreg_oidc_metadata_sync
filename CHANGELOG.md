@@ -1,3 +1,11 @@
+## [3.1.5](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.4...v3.1.5) (2022-04-25)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.springframework.boot:spring-boot-starter-parent to v2.6.7 ([0bfc68c](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/0bfc68c86d492528e66e9735fb7576b0fca80c17))
+* **deps:** update dependency org.springframework.security.oauth:spring-security-oauth2 to v2.5.2.release ([548d796](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/548d796250734e9b3209b9a6f0fd2e6eb64290ac))
+
 ## [3.1.4](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.3...v3.1.4) (2022-03-31)
 
 
