@@ -21,7 +21,7 @@
         <final.name>mitreid-sync</final.name>
         <!-- DEPENDENCIES -->
         <nimbus-jose-jwt.version>9.21</nimbus-jose-jwt.version>
-        <spring-security-oauth2.version>2.5.1.RELEASE</spring-security-oauth2.version>
+        <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
         <eclipse-persistence-jpa.version>2.7.10</eclipse-persistence-jpa.version>
         <java-object-diff.version>0.95</java-object-diff.version>
     </properties>
