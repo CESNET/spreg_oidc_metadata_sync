@@ -1,3 +1,10 @@
+## [3.1.8](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.7...v3.1.8) (2022-06-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency com.nimbusds:nimbus-jose-jwt to v9.23 ([417063c](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/417063ced01c1ee1c1535677b35f0b94f7c9cbb3))
+
 ## [3.1.7](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.6...v3.1.7) (2022-05-23)
 
 
