@@ -1,3 +1,10 @@
+## [3.1.9](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.8...v3.1.9) (2022-06-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.springframework.boot:spring-boot-starter-parent to v2.7.1 ([e73df5f](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/e73df5f6f9fd196783843951e9a7e114d7b56c40))
+
 ## [3.1.8](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.7...v3.1.8) (2022-06-01)
 
 
