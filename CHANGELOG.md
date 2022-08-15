@@ -1,3 +1,10 @@
+## [3.1.11](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.10...v3.1.11) (2022-08-15)
+
+
+### Bug Fixes
+
+* **deps:** update dependency org.eclipse.persistence:org.eclipse.persistence.jpa to v2.7.11 ([9b1db36](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/9b1db36ec0e31b09a6cafda5df080f5a76c2f8db))
+
 ## [3.1.10](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.9...v3.1.10) (2022-07-25)
 
 
