@@ -1,3 +1,10 @@
+## [3.1.14](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.13...v3.1.14) (2022-08-25)
+
+
+### Bug Fixes
+
+* 🐛 Allow PKCE for devicecode ([2de57f2](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/2de57f26844a9aa44fc80c598db32f8439dbc3cb))
+
 ## [3.1.13](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.12...v3.1.13) (2022-08-22)
 
 

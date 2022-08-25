@@ -12,7 +12,7 @@
 
     <groupId>cz.muni.ics.oidc</groupId>
     <artifactId>oidc_sync</artifactId>
-    <version>3.1.13</version>
+    <version>3.1.14</version>
     <packaging>jar</packaging>
 
     <properties>
