@@ -421,15 +421,17 @@ public class ToOidcSynchronizer {
             log.debug("Added grant '{}'", GRANT_DEVICE);
         }
 
-        if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)) {
-            setPKCEOptionsForAuthorizationCode(c, attrs);
+        if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)
+            || grantTypes.contains(GRANT_DEVICE))
+        {
+            setPKCEOptions(c, attrs);
         }
 
         c.setGrantTypes(grantTypes);
         c.setResponseTypes(responseTypes);
     }
 
-    private void setPKCEOptionsForAuthorizationCode(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+    private void setPKCEOptions(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
         log.trace("Setting PKCE options");
         String codeChallengeType = attrs.get(perunAttrNames.getCodeChallengeType()).valueAsString();
         c.setCodeChallengeMethod(null);
