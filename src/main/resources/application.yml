@@ -27,6 +27,7 @@ attributes:
   contacts:
     - "urn:perun:facility:attribute-def:def:administratorContact"
   scopes: "urn:perun:facility:attribute-def:def:requiredScopes"
+  token_endpoint_authentication_method: "urn:perun:facility:attribute-def:def:OIDCTokenEndpointAuthenticationMethod"
   grant_types: "urn:perun:facility:attribute-def:def:OIDCGrantTypes"
   code_challenge_type: "urn:perun:facility:attribute-def:def:OIDCCodeChallengeType"
   introspection: "urn:perun:facility:attribute-def:def:OIDCAllowIntrospection"

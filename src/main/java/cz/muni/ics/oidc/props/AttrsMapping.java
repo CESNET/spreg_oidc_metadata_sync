@@ -44,6 +44,8 @@ public class AttrsMapping {
     @NotBlank private String introspection;
     @NotBlank private String postLogoutRedirectUris;
     @NotBlank private String issueRefreshTokens;
+
+    @NotBlank private String tokenEndpointAuthenticationMethod;
     private List<String> homePageUris;
     private String tokenTimeouts;
     private String reuseRefreshTokens;
@@ -57,9 +59,25 @@ public class AttrsMapping {
 
     public List<String> getNames() {
         List<String> attrNames = new ArrayList<>(
-                Arrays.asList(clientId, clientSecret, name, description, redirectUris, privacyPolicy, scopes,
-                        grantTypes, codeChallengeType, introspection, postLogoutRedirectUris, issueRefreshTokens,
-                        masterProxyIdentifier, proxyIdentifier, isTestSp, isOidc, managersGroupId)
+                Arrays.asList(clientId,
+                    clientSecret,
+                    name,
+                    description,
+                    redirectUris,
+                    privacyPolicy,
+                    scopes,
+                    grantTypes,
+                    codeChallengeType,
+                    introspection,
+                    postLogoutRedirectUris,
+                    issueRefreshTokens,
+                    tokenEndpointAuthenticationMethod,
+                    masterProxyIdentifier,
+                    proxyIdentifier,
+                    isTestSp,
+                    isOidc,
+                    managersGroupId
+                )
         );
         attrNames.addAll(contacts);
 
