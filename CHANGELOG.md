@@ -1,3 +1,15 @@
+# [4.0.0](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.16...v4.0.0) (2022-09-19)
+
+
+### Features
+
+* 🎸 Sync Token endpoint authN method ([a06ae5a](https://github.com/CESNET/spreg_oidc_metadata_sync/commit/a06ae5aa92fe95e59d5d77ae8b0542fa61217e51))
+
+
+### BREAKING CHANGES
+
+* 🧨 Needs configuration for new attributes
+
 ## [3.1.16](https://github.com/CESNET/spreg_oidc_metadata_sync/compare/v3.1.15...v3.1.16) (2022-09-13)
 
 
