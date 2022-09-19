@@ -93,7 +93,6 @@ public class ToOidcSynchronizer {
     public static final String PKCE_TYPE_NONE = "none";
     public static final String PKCE_TYPE_PLAIN = "plain code challenge";
     public static final String PKCE_TYPE_SHA256 = "SHA256 code challenge";
-
     private final PerunAdapter perunAdapter;
     private final String proxyIdentifier;
     private final String proxyIdentifierValue;
@@ -152,7 +151,8 @@ public class ToOidcSynchronizer {
             log.info("Removing old clients");
             deleteClients(foundClientIds, res);
         } else {
-            log.warn("Script has disabled removing of old clients. This might be due to Peruns unreachability! Check previous logs for more info.");
+            log.warn("Script has disabled removing of old clients. " +
+                "This might be due to Peruns unreachability! Check previous logs for more info.");
         }
         return res;
     }
@@ -242,7 +242,9 @@ public class ToOidcSynchronizer {
         }
     }
 
-    private void updateClient(MitreidClient original, Map<String, PerunAttributeValue> attrs, SyncResult res)
+    private void updateClient(MitreidClient original,
+                              Map<String, PerunAttributeValue> attrs,
+                              SyncResult res)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
         if (actionsProperties.getToOidc().isUpdate()) {
@@ -329,28 +331,147 @@ public class ToOidcSynchronizer {
                 }
             }
         } else {
-            log.warn("Deleting of clients is disabled. Following clientIDs would be deleted: {}", clientsToDelete);
+            log.warn("Deleting of clients is disabled. Following clientIDs would be deleted: {}",
+                clientsToDelete);
         }
     }
 
     private void setClientFields(MitreidClient c, Map<String, PerunAttributeValue> attrs)
             throws BadPaddingException, InvalidKeyException, IllegalBlockSizeException
     {
-        c.setClientId(attrs.get(perunAttrNames.getClientId()).valueAsString());
-        c.setClientSecret(Utils.decrypt(
-                attrs.get(perunAttrNames.getClientSecret()).valueAsString(), cipher, secretKeySpec));
-        c.setClientName(attrs.get(perunAttrNames.getName()).valueAsMap().get("en"));
-        c.setClientDescription(attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en"));
-        c.setRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getRedirectUris()).valueAsList()));
-        c.setAllowIntrospection(attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean());
-        c.setPostLogoutRedirectUris(new HashSet<>(attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList()));
-        c.setScope(new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList()));
+        setClientId(c, attrs);
+        setClientSecret(c, attrs);
+        setClientName(c, attrs);
+        setClientDescription(c, attrs);
+        setRedirectUris(c, attrs);
+        setIntrospection(c, attrs);
+        setPostLogoutRedirectUris(c, attrs);
+        setScopes(c, attrs);
+        setGrantAndResponseTypes(c, attrs);
+        setPKCEOptions(c, attrs);
+        setTokenEndpointAuthentication(c, attrs);
+        setRefreshTokens(c, attrs);
+        setTokenTimeouts(c, attrs);
         setPolicyUri(c, attrs);
         setContacts(c, attrs);
         setClientUri(c, attrs);
-        setGrantAndResponseTypes(c, attrs);
-        setRefreshTokens(c, attrs);
-        setTokenTimeouts(c, attrs);
+    }
+
+    private void setClientId(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        String clientId = attrs.get(perunAttrNames.getClientId()).valueAsString();
+        c.setClientId(clientId);
+    }
+
+    private void setClientSecret(MitreidClient c, Map<String, PerunAttributeValue> attrs)
+        throws IllegalBlockSizeException, BadPaddingException, InvalidKeyException
+    {
+        String encryptedClientSecret = attrs.get(perunAttrNames.getClientSecret()).valueAsString();
+        String clientSecret = Utils.decrypt(encryptedClientSecret, cipher, secretKeySpec);
+        c.setClientSecret(clientSecret);
+    }
+
+    private void setClientName(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        String clientName = attrs.get(perunAttrNames.getName()).valueAsMap().get("en");
+        c.setClientName(clientName);
+    }
+
+    private void setClientDescription(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        String clientDescription = attrs.get(perunAttrNames.getDescription()).valueAsMap().get("en");
+        c.setClientDescription(clientDescription);
+    }
+
+    private void setRedirectUris(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        Set<String> redirectUris = new HashSet<>(
+            attrs.get(perunAttrNames.getRedirectUris()).valueAsList());
+        c.setRedirectUris(redirectUris);
+    }
+
+    private void setIntrospection(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        boolean introspectionAllowed = attrs.get(perunAttrNames.getIntrospection()).valueAsBoolean();
+        c.setAllowIntrospection(introspectionAllowed);
+    }
+
+    private void setPostLogoutRedirectUris(MitreidClient c,
+                                           Map<String, PerunAttributeValue> attrs)
+    {
+        Set<String> postLogoutRedirectUris = new HashSet<>(
+            attrs.get(perunAttrNames.getPostLogoutRedirectUris()).valueAsList());
+        c.setPostLogoutRedirectUris(postLogoutRedirectUris);
+    }
+
+    private void setScopes(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        Set<String> scopes = new HashSet<>(attrs.get(perunAttrNames.getScopes()).valueAsList());
+        c.setScope(scopes);
+    }
+
+    private void setGrantAndResponseTypes(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        List<String> grantTypesAttrValue = attrs.get(perunAttrNames.getGrantTypes()).valueAsList().stream()
+            .map(String::toLowerCase).collect(Collectors.toList());
+
+        Set<String> grantTypes = new HashSet<>();
+        Set<String> responseTypes = new HashSet<>();
+
+        if (grantTypesAttrValue.contains(AUTHORIZATION_CODE)) {
+            grantTypes.add(GRANT_AUTHORIZATION_CODE);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_AUTH_CODE));
+            log.debug("Added grant '{}' with response types '{}'", GRANT_AUTHORIZATION_CODE, RESPONSE_TYPE_AUTH_CODE);
+        }
+
+        if (grantTypesAttrValue.contains(IMPLICIT)) {
+            grantTypes.add(GRANT_IMPLICIT);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_IMPLICIT));
+            log.debug("Added grant '{}' with response types '{}'", GRANT_IMPLICIT, RESPONSE_TYPE_IMPLICIT);
+        }
+
+        if (grantTypesAttrValue.contains(HYBRID)) {
+            grantTypes.add(GRANT_HYBRID);
+            grantTypes.add(GRANT_AUTHORIZATION_CODE);
+            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_HYBRID));
+            log.debug("Added grants '{} {}' with response types '{}'", GRANT_HYBRID, GRANT_AUTHORIZATION_CODE,
+                RESPONSE_TYPE_HYBRID);
+        }
+
+        if (grantTypesAttrValue.contains(DEVICE)) {
+            grantTypes.add(GRANT_DEVICE);
+            log.debug("Added grant '{}'", GRANT_DEVICE);
+        }
+
+        c.setGrantTypes(grantTypes);
+        c.setResponseTypes(responseTypes);
+    }
+
+    private void setPKCEOptions(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
+        log.trace("Setting PKCE options");
+        String codeChallengeType = attrs.get(perunAttrNames.getCodeChallengeType()).valueAsString();
+        c.setCodeChallengeMethod(null);
+        if (!PKCE_TYPE_NONE.equalsIgnoreCase(codeChallengeType)) {
+            log.debug("Code challenge requested is not equal to '{}'", PKCE_TYPE_NONE);
+            if (PKCE_TYPE_PLAIN.equalsIgnoreCase(codeChallengeType)) {
+                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_PLAIN);
+                c.setCodeChallengeMethod(PKCEAlgorithm.plain);
+            } else if (PKCE_TYPE_SHA256.equalsIgnoreCase(codeChallengeType)) {
+                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_SHA256);
+                c.setCodeChallengeMethod(PKCEAlgorithm.S256);
+            }
+        }
+    }
+
+    private void setTokenEndpointAuthentication(MitreidClient c,
+                                                Map<String, PerunAttributeValue> attrs)
+    {
+        String authMethodAttrValue = attrs.get(perunAttrNames.getTokenEndpointAuthenticationMethod())
+            .valueAsString();
+        MitreidClient.AuthMethod authMethod = MitreidClient.AuthMethod.getByValue(authMethodAttrValue);
+        if (authMethod == null) {
+            log.debug("Failed to parse token endpoint authentication method." +
+                " Using client_secret_basic as default value.");
+            authMethod = MitreidClient.AuthMethod.SECRET_BASIC;
+        }
+        c.setTokenEndpointAuthMethod(authMethod);
+        if (MitreidClient.AuthMethod.NONE.equals(authMethod)) {
+            log.debug("NONE used as token endpoint authentication method. Removing client_secret");
+            c.setClientSecret(null);
+        }
     }
 
     private void setRefreshTokens(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
@@ -387,71 +508,6 @@ public class ToOidcSynchronizer {
                 || grantTypes.contains(GRANT_HYBRID));
         log.debug("Grants '{}' {} issuing refresh tokens", grantTypes, res ? "allow" : "disallow");
         return res;
-    }
-
-    private void setGrantAndResponseTypes(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
-        List<String> grantTypesAttrValue = attrs.get(perunAttrNames.getGrantTypes()).valueAsList().stream()
-                .map(String::toLowerCase).collect(Collectors.toList());
-
-        Set<String> grantTypes = new HashSet<>();
-        Set<String> responseTypes = new HashSet<>();
-
-        if (grantTypesAttrValue.contains(AUTHORIZATION_CODE)) {
-            grantTypes.add(GRANT_AUTHORIZATION_CODE);
-            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_AUTH_CODE));
-            log.debug("Added grant '{}' with response types '{}'", GRANT_AUTHORIZATION_CODE, RESPONSE_TYPE_AUTH_CODE);
-        }
-
-        if (grantTypesAttrValue.contains(IMPLICIT)) {
-            grantTypes.add(GRANT_IMPLICIT);
-            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_IMPLICIT));
-            log.debug("Added grant '{}' with response types '{}'", GRANT_IMPLICIT, RESPONSE_TYPE_IMPLICIT);
-        }
-
-        if (grantTypesAttrValue.contains(HYBRID)) {
-            grantTypes.add(GRANT_HYBRID);
-            grantTypes.add(GRANT_AUTHORIZATION_CODE);
-            responseTypes.addAll(Arrays.asList(RESPONSE_TYPE_HYBRID));
-            log.debug("Added grants '{} {}' with response types '{}'", GRANT_HYBRID, GRANT_AUTHORIZATION_CODE,
-                    RESPONSE_TYPE_HYBRID);
-        }
-
-        if (grantTypesAttrValue.contains(DEVICE)) {
-            grantTypes.add(GRANT_DEVICE);
-            log.debug("Added grant '{}'", GRANT_DEVICE);
-        }
-
-        if (grantTypes.contains(GRANT_AUTHORIZATION_CODE)
-            || grantTypes.contains(GRANT_DEVICE))
-        {
-            setPKCEOptions(c, attrs);
-        }
-
-        c.setGrantTypes(grantTypes);
-        c.setResponseTypes(responseTypes);
-    }
-
-    private void setPKCEOptions(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
-        log.trace("Setting PKCE options");
-        String codeChallengeType = attrs.get(perunAttrNames.getCodeChallengeType()).valueAsString();
-        c.setCodeChallengeMethod(null);
-        if (!PKCE_TYPE_NONE.equalsIgnoreCase(codeChallengeType)) {
-            log.debug("Code challenge requested is not equal to '{}'", PKCE_TYPE_NONE);
-            if (PKCE_TYPE_PLAIN.equalsIgnoreCase(codeChallengeType)) {
-                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_PLAIN);
-                preparePkce(c);
-                c.setCodeChallengeMethod(PKCEAlgorithm.plain);
-            } else if (PKCE_TYPE_SHA256.equalsIgnoreCase(codeChallengeType)) {
-                log.debug("Preparing for PKCE with challenge '{}'", PKCE_TYPE_SHA256);
-                preparePkce(c);
-                c.setCodeChallengeMethod(PKCEAlgorithm.S256);
-            }
-        }
-    }
-
-    private void preparePkce(MitreidClient c) {
-        c.setClientSecret(null);
-        c.setTokenEndpointAuthMethod(MitreidClient.AuthMethod.NONE);
     }
 
     private void setTokenTimeouts(MitreidClient c, Map<String, PerunAttributeValue> attrs) {
