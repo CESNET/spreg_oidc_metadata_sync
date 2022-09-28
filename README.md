@@ -1,4 +1,7 @@
 # SPReg (Perun) -> MitreID sync
+
+**REPOSITORY HAS BEEN MOVED TO: https://gitlab.ics.muni.cz/perun-proxy-aai/java/spreg_oidc_metadata_sync**
+
 [![Checkstyle](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/checkstyle.yml/badge.svg)](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/checkstyle.yml)
 
 [![Maven build](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/maven.yml/badge.svg)](https://github.com/CESNET/spreg_oidc_metadata_sync/actions/workflows/maven.yml)
